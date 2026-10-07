@@ -1,0 +1,61 @@
+name: build
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to attach the exe to a Release on tag builds
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      PROJECT: src/TaskDelegator/TaskDelegator.csproj
+      CONFIG: Release
+      RID: win-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore $env:PROJECT
+
+      - name: Publish portable single-file exe
+        run: >
+          dotnet publish $env:PROJECT
+          -c $env:CONFIG
+          -r $env:RID
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=embedded
+          -p:EnableCompressionInSingleFile=true
+          -o publish
+
+      - name: Show output
+        run: Get-ChildItem publish
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TaskDelegator-${{ env.RID }}
+          path: publish/TaskDelegator.exe
+          if-no-files-found: error
+
+      - name: Attach to Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/TaskDelegator.exe
+          fail_on_unmatched_files: true

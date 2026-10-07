@@ -1,142 +1,151 @@
 # Task Scheduler — Privileged App Delegation (Windows)
 
-A small Windows IT-administration tool that lets an **administrator** grant a
+A portable Windows IT-administration tool that lets an **administrator** grant a
 **standard (non-admin) user** the right to run **one specific, approved
 application with administrator privileges** — *without* ever giving that user the
-administrator password.
+administrator password, and **working even when the logged-in user is a standard
+(non-admin) account**.
 
 It is the Windows equivalent of a Linux `sudo` rule with `NOPASSWD` for a single
-command: an admin explicitly delegates elevated execution of a trusted app. It is
-built entirely on the **sanctioned Windows Task Scheduler mechanism** — there is
-no UAC bypass, no exploit, and no vulnerability abuse.
+command. It is built on the **sanctioned Windows Task Scheduler + session APIs** —
+there is no UAC bypass, no exploit, and no vulnerability abuse.
 
-The tool can:
+The tool:
 
-- **List installed software** (from the Windows uninstall registry).
-- **List local Windows users** (and show who is an admin vs. standard user).
-- Let an admin **pick an application + a target user** and create a delegation.
-- Make that app **runnable with admin rights by the chosen user**, with no password.
-- Drop a **shortcut on that user's desktop** that launches the app.
-- **List and remove** existing delegations (fully auditable).
+- **Lists installed software** (from the Windows uninstall registry).
+- **Lists local Windows users** (showing admin vs. standard).
+- Lets an admin **pick an application + a target user** and create a delegation.
+- Makes that app **runnable with admin rights by the chosen user**, with no
+  password — and the app's window **appears on that standard user's own desktop**.
+- Drops a **shortcut on that user's desktop**.
+- **Lists and removes** delegations; every action is logged (auditable).
+
+Single, self-contained, **portable `.exe`** — no installation, no .NET required on
+the target machine.
 
 ---
 
 ## How it works (the legitimate mechanism)
 
-This tool does **not** bypass UAC or elevate anything on its own. The elevation is
-*delegated by an administrator* using the mechanism Microsoft provides for it:
+Elevation is **delegated by an administrator**; the tool does not elevate anything
+on its own.
 
-1. **Admin gate.** The tool must run elevated and self-elevates via UAC on launch.
-   Only someone who can satisfy that UAC prompt (an administrator who knows the
-   password) can configure a delegation. *That prompt is the "admin login."*
-2. **Scheduled task.** For each approved app, the tool registers an **on-demand**
-   task under `\AppDelegation\`, set to **Run with highest privileges**, running
-   as a **stored administrator identity**. The admin supplies those credentials
-   once, at setup; Windows stores them securely (they are never shown to the user).
+1. **Admin gate.** The GUI is marked `requireAdministrator`, so launching it raises
+   a UAC prompt. Only an administrator can get past it and configure a delegation.
+   *That prompt is the "admin login."*
+2. **SYSTEM task.** For each approved app, the tool registers an **on-demand**
+   scheduled task under `\AppDelegation\`, running as **SYSTEM** with **highest
+   privileges**. The task's only action is to run this same tool as a launcher.
 3. **Scoped permission.** The task's security descriptor is set so the chosen
-   standard user may **run that one task** (read + execute) — and nothing more.
-   They cannot read the stored credentials, edit the task, or run anything else
-   elevated.
-4. **Desktop shortcut.** A shortcut on the user's desktop invokes
-   `schtasks /run` for that task (via a hidden launcher, so no console flashes).
+   standard user may **run that one task** — and nothing else.
+4. **Interactive launch.** When triggered, the SYSTEM launcher finds the user's
+   interactive session and starts the approved app **elevated, on the user's
+   desktop** (via `CreateProcessAsUser`). This is why it works for standard users
+   and why the window is visible to them.
+5. **Desktop shortcut.** A shortcut on the user's desktop triggers the task (hidden
+   launcher, no console flash).
 
-When the user double-clicks the shortcut, Task Scheduler launches the approved app
-elevated. The user never sees or needs the admin password.
+By default the app runs as **SYSTEM** (full local privileges, no password anywhere).
+Optionally you can choose **"Admin account"** mode to run it as a specific
+administrator user instead (that password is stored encrypted with DPAPI and is
+readable only by SYSTEM/Administrators).
 
-See [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md) for the technical detail and
-[`docs/SECURITY.md`](docs/SECURITY.md) for the trust model and limitations.
+See [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md) and
+[`docs/SECURITY.md`](docs/SECURITY.md) for detail and the trust model.
 
 ---
 
-## Requirements
+## Get the executable
 
-- Windows 10 or Windows 11.
-- Windows PowerShell 5.1 (built in) **or** PowerShell 7+.
-- An administrator account to configure delegations.
+**CI/CD (GitHub Actions) builds the portable `.exe` automatically** — see
+[`.github/workflows/build.yml`](.github/workflows/build.yml).
 
-No build step and no installation — it is a single PowerShell script with a GUI.
+- **Every push / PR:** download `TaskDelegator-win-x64` from the run's **Artifacts**
+  (Actions tab → latest run).
+- **Tagged release (`v*`):** the `.exe` is attached to the GitHub **Release**.
+
+### Build it yourself
+
+Requires the .NET 8 SDK on a Windows machine:
+
+```powershell
+dotnet publish src/TaskDelegator/TaskDelegator.csproj -c Release -r win-x64 `
+  --self-contained true -p:PublishSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true -o publish
+# -> publish\TaskDelegator.exe   (portable, self-contained)
+```
 
 ---
 
 ## Usage
 
-1. Clone or download this repository onto the Windows machine.
-2. Double-click **`launch/Run-TaskDelegator.cmd`** (or run
-   `src/TaskDelegator.ps1` in PowerShell).
-3. Approve the **UAC elevation** prompt as an administrator.
-4. In the **Create delegation** tab:
-   - Pick an application from the list (or **Browse…** to a `.exe`).
-   - Pick the **target Windows user**.
-   - Confirm the **Run as admin** account + **password** (defaults to the current
-     admin; you can point it at a dedicated admin account instead).
-   - Leave **Create a desktop shortcut** checked.
+1. Copy `TaskDelegator.exe` onto the Windows machine (anywhere — it's portable).
+2. Run it and approve the **UAC elevation** prompt as an administrator.
+3. On the **Create delegation** tab:
+   - Pick an application (or **Browse…** to a `.exe`).
+   - Pick the **target Windows user** (works for standard users).
+   - Leave **Run as: SYSTEM** (no password), or choose **Admin account** and enter
+     an administrator account + password.
+   - Leave **Create a shortcut on the user's desktop** checked.
    - Click **Create delegation**.
-5. The chosen user can now launch that app with admin rights from their desktop.
-6. The **Existing delegations** tab lists everything created and lets you remove
-   any delegation (which also deletes its shortcut).
+4. That user can now launch the app with admin rights from their desktop — even
+   when logged in as a standard user, with the window on their own screen.
+5. The **Existing delegations** tab lists everything and lets you remove any.
 
-Every create/remove is written to `C:\ProgramData\AppDelegation\audit.log`.
+Creating a delegation copies the portable exe once to
+`C:\ProgramData\AppDelegation\TaskDelegator.exe` so the scheduled task keeps working
+after you move or delete the copy you ran. Actions are logged to
+`C:\ProgramData\AppDelegation\audit.log` (and `launcher.log`).
 
 ---
 
 ## راهنمای فارسی (خلاصه)
 
-این ابزار به **ادمین** اجازه می‌دهد که اجازهٔ اجرای **یک نرم‌افزار مشخص با دسترسی
-ادمین** را به یک **کاربر عادی (غیرادمین)** بدهد، بدون اینکه رمز ادمین را به او بدهد.
-این کار با مکانیزم رسمی **Task Scheduler** ویندوز انجام می‌شود (نه دور زدن UAC و نه
-اکسپلویت).
+ابزاری پورتابل برای ویندوز که به **ادمین** اجازه می‌دهد اجازهٔ اجرای **یک نرم‌افزار
+مشخص با دسترسی ادمین** را به یک **کاربر عادی (غیرادمین)** بدهد، بدون دادن رمز ادمین —
+و **برای کاربر استاندارد هم کار می‌کند** و پنجرهٔ برنامه روی دسکتاپِ خودِ کاربر
+نمایش داده می‌شود. این کار با مکانیزم رسمی **Task Scheduler + APIهای سشن ویندوز**
+انجام می‌شود (نه دور زدن UAC).
 
-روش استفاده:
+خروجی نهایی یک فایل **`TaskDelegator.exe`** تک‌فایلی و پورتابل است که توسط **CI/CD
+(GitHub Actions)** ساخته می‌شود؛ از تب Actions در بخش Artifacts قابل دانلود است.
 
-1. فایل **`launch/Run-TaskDelegator.cmd`** را اجرا کنید.
-2. در پنجرهٔ **UAC** به‌عنوان ادمین تأیید کنید (همین مرحله «لاگین ادمین» است؛ فقط
-   کسی که رمز ادمین را دارد می‌تواند تنظیمات را انجام دهد).
-3. در تب **Create delegation**:
-   - از لیست، **نرم‌افزار نصب‌شده** را انتخاب کنید (یا با **Browse…** فایل `.exe`
-     را انتخاب کنید).
-   - **کاربر ویندوزی** موردنظر را انتخاب کنید.
-   - حساب **Run as admin** و **رمز آن** را وارد کنید (به‌صورت امن توسط ویندوز ذخیره
-     می‌شود و هرگز به کاربر نشان داده نمی‌شود).
-   - گزینهٔ ساخت **شورتکات روی دسکتاپ** را فعال بگذارید.
-   - روی **Create delegation** کلیک کنید.
-4. حالا آن کاربر می‌تواند از روی دسکتاپ خودش، آن نرم‌افزار را با دسترسی ادمین و بدون
+طرز استفاده:
+
+1. `TaskDelegator.exe` را روی ویندوز اجرا کنید و در پنجرهٔ **UAC** به‌عنوان ادمین
+   تأیید کنید (همین «لاگین ادمین» است).
+2. در تب **Create delegation**: نرم‌افزار و کاربر را انتخاب کنید؛ حالت **SYSTEM**
+   (بدون رمز) یا **Admin account** را انتخاب کنید؛ گزینهٔ ساخت شورتکات را فعال
+   بگذارید و روی **Create delegation** بزنید.
+3. حالا آن کاربر عادی می‌تواند از روی دسکتاپ خودش نرم‌افزار را با دسترسی ادمین و بدون
    رمز اجرا کند.
-5. در تب **Existing delegations** می‌توانید موارد ساخته‌شده را ببینید و حذف کنید.
 
-⚠️ **هشدار امنیتی:** تفویض یک نرم‌افزار دقیقاً مثل دادن `sudo` برای آن نرم‌افزار است.
-فقط نرم‌افزارهای **مورد اعتماد** را تفویض کنید. نرم‌افزاری که می‌تواند خط‌فرمان باز
-کند، فایل دلخواه اجرا کند یا کد دلخواه بارگذاری کند (مثل مرورگر، آفیس، cmd،
-PowerShell، فایل‌منیجر) عملاً دسترسی ادمین گسترده‌تری می‌دهد.
+⚠️ **هشدار امنیتی:** تفویض یک نرم‌افزار دقیقاً مثل دادن `sudo` برای آن است. فقط
+نرم‌افزارهای **مورد اعتماد و تک‌منظوره** را تفویض کنید. همچنین فایل اجرایی برنامه باید
+در مسیری باشد که کاربر عادی اجازهٔ نوشتن در آن را ندارد (مثل `Program Files`)، وگرنه
+کاربر می‌تواند آن را با کد دلخواه جایگزین کند.
 
 ---
 
 ## Notes & troubleshooting
 
-- **No executable auto-detected.** Some apps don't register a clean executable
-  path. Use **Browse…** to point at the real `.exe`.
+- **No executable auto-detected.** Use **Browse…** to point at the real `.exe`.
 - **Shortcut didn't appear.** If the target user has never logged on, their profile
-  (and desktop) may not exist yet; the tool then places the shortcut on the
-  **Public** desktop and tells you so.
-- **GUI visibility.** The delegated app runs under a stored administrator identity,
-  so it is launched in that identity's security context. For most line-of-business
-  apps the window appears for the user who triggered it. If you delegate a GUI app
-  and its window does not appear on the standard user's interactive desktop, that is
-  Windows session isolation — tell me and I can add a SYSTEM-helper mode that always
-  launches into the interactive session. CLI/background apps are unaffected.
-- **Audit / cleanup.** Everything is logged to
-  `C:\ProgramData\AppDelegation\audit.log`, and the tasks live under the
-  `\AppDelegation\` folder in Task Scheduler. Use the **Existing delegations** tab to
-  remove any delegation.
+  may not exist yet; the shortcut then goes to the **Public** desktop.
+- **Nothing happens when the user clicks the shortcut.** Check
+  `C:\ProgramData\AppDelegation\launcher.log` — it records the session it targeted
+  and any error. The app must exist at the recorded path.
+- **SYSTEM vs Admin account.** SYSTEM mode needs no password and is simplest. If an
+  app misbehaves under the SYSTEM profile, use **Admin account** mode.
 
 ## Responsible use
 
 Delegating an application is equivalent to granting `sudo` on it. **Only delegate
-applications you trust.** Any app that can spawn arbitrary child processes — a
-browser, an Office app, `cmd`, PowerShell, a file manager, anything with a
-"Run…"/"Open with…" feature — effectively hands the user broader elevation. Choose
-narrowly, prefer single-purpose line-of-business apps, and review
-`C:\ProgramData\AppDelegation\audit.log` periodically. This is the same caveat that
-applies to `sudo` and to any privilege-delegation mechanism.
+applications you trust**, and make sure the app's executable lives in a location the
+user **cannot** write to (e.g. `Program Files`). Any app that can spawn arbitrary
+child processes — a browser, Office, `cmd`, PowerShell, a file manager, anything with
+a "Run…"/"Open with…" feature — effectively hands the user broader elevation. Choose
+narrowly and review the audit log periodically.
 
 ## License
 

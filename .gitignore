@@ -2,7 +2,9 @@
 .vs/
 bin/
 obj/
+publish/
 *.user
+*.binlog
 
 # Local logs / runtime data (this tool writes to C:\ProgramData\AppDelegation)
 *.log
