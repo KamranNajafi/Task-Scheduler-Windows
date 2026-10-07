@@ -13,6 +13,8 @@ public static class Paths
 
     public static string DelegationsDir => System.IO.Path.Combine(DataDir, "delegations");
     public static string CredentialsDir => System.IO.Path.Combine(DataDir, "creds");
+    // Student-readable menu entries (display name + task name only; no secrets).
+    public static string MenuDir => System.IO.Path.Combine(DataDir, "menu");
     public static string AuditLog => System.IO.Path.Combine(DataDir, "audit.log");
     public static string LauncherLog => System.IO.Path.Combine(DataDir, "launcher.log");
 
@@ -24,5 +26,6 @@ public static class Paths
         System.IO.Directory.CreateDirectory(DataDir);
         System.IO.Directory.CreateDirectory(DelegationsDir);
         System.IO.Directory.CreateDirectory(CredentialsDir);
+        System.IO.Directory.CreateDirectory(MenuDir);
     }
 }

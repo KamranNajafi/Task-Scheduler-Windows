@@ -37,10 +37,27 @@ Administrator                     TaskDelegator.exe (GUI, elevated)        Stand
      |                                                                           |  elevated, visible
 ```
 
-### 1. Admin gate (`app.manifest`)
-`requestedExecutionLevel level="requireAdministrator"` forces a UAC prompt for the
-GUI. Only an administrator can configure delegations. The SYSTEM task invokes the
-same exe with `--launch`; SYSTEM is already elevated, so that path prompts nothing.
+### 0. Three modes (one exe)
+The manifest is `asInvoker` so a standard user can open the launcher with no UAC
+prompt. `Program.Main` routes by arguments:
+- **no args** → `StudentLauncherForm` — run-only launcher for the standard user.
+- **`--admin`** → `MainForm` (admin console); if not already elevated it relaunches
+  itself with the `runas` verb (UAC) = the "admin login".
+- **`--launch "<task>"`** → `SessionLauncher` (runs as SYSTEM from the task).
+
+### 1. Admin gate
+Configuration lives only in the admin console (`--admin`), which self-elevates.
+Students cannot reach it without administrator credentials at the UAC prompt. The
+SYSTEM task invokes the exe with `--launch`; SYSTEM is already elevated regardless
+of the manifest.
+
+### 1b. Student launcher (run-only)
+When a delegation is created, a student-readable **menu entry** (friendly name +
+task name only — no secrets) is written to `%ProgramData%\AppDelegation\menu\`
+(Users may read; only SYSTEM/Administrators may write). The launcher lists the
+current user's entries and, on run, executes `schtasks /run /tn "\AppDelegation\…"`
+for that one task. It can only *run* pre-approved tasks — it never creates,
+changes, removes, or uninstalls anything.
 
 ### 2. Inventory
 - **Software** (`SoftwareInventory`): reads the uninstall registry keys (HKLM 64/32,

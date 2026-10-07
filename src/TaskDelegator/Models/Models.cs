@@ -58,6 +58,19 @@ public sealed class DelegationConfig
     public string CreatedAtUtc { get; set; } = "";
 }
 
+/// <summary>
+/// Student-readable launcher entry. Contains only display info + the task name to
+/// run — no credentials, no descriptor internals. Written to the menu folder,
+/// which standard users may read.
+/// </summary>
+public sealed class MenuEntry
+{
+    public string TaskName { get; set; } = "";
+    public string FriendlyName { get; set; } = "";
+    public string TargetUserSid { get; set; } = "";
+    public string? IconPath { get; set; }
+}
+
 /// <summary>A row shown in the "Existing delegations" list.</summary>
 public sealed class DelegationRow
 {

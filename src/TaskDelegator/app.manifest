@@ -3,15 +3,15 @@
   <assemblyIdentity version="1.0.0.0" name="TaskDelegator.app"/>
 
   <!--
-    The administration GUI requires elevation. This is the "admin login":
-    only a user who can satisfy the UAC prompt (an administrator) can configure
-    delegations. The SYSTEM scheduled task invokes this same exe with --launch;
-    SYSTEM is already elevated, so no prompt occurs on that path.
+    Runs as the invoking user so a *standard* user (student) can open the
+    run-only launcher with no UAC prompt. The admin console (`--admin`) self-
+    elevates (UAC) on demand = the "admin login". The SYSTEM scheduled task
+    invokes this exe with `--launch`; SYSTEM is already elevated regardless.
   -->
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
       <requestedPrivileges>
-        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
       </requestedPrivileges>
     </security>
   </trustInfo>

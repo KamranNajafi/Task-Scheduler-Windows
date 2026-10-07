@@ -28,11 +28,16 @@ the target machine.
 ## How it works (the legitimate mechanism)
 
 Elevation is **delegated by an administrator**; the tool does not elevate anything
-on its own.
+on its own. The one exe has three modes:
 
-1. **Admin gate.** The GUI is marked `requireAdministrator`, so launching it raises
-   a UAC prompt. Only an administrator can get past it and configure a delegation.
-   *That prompt is the "admin login."*
+- **default (no arguments)** → the run-only **student launcher** (a standard user
+  can open it with no UAC prompt).
+- **`--admin`** → the **administrator console** (self-elevates via UAC = the "admin
+  login"; only an administrator can get past it and configure delegations).
+- **`--launch "<task>"`** → the SYSTEM launcher (invoked only by the scheduled task).
+
+1. **Admin gate.** Configuration lives in the admin console, which self-elevates;
+   students cannot reach it without administrator credentials at the UAC prompt.
 2. **SYSTEM task.** For each approved app, the tool registers an **on-demand**
    scheduled task under `\AppDelegation\`, running as **SYSTEM** with **highest
    privileges**. The task's only action is to run this same tool as a launcher.
@@ -79,18 +84,31 @@ dotnet publish src/TaskDelegator/TaskDelegator.csproj -c Release -r win-x64 `
 
 ## Usage
 
+### Administrator — set up delegations
+
 1. Copy `TaskDelegator.exe` onto the Windows machine (anywhere — it's portable).
-2. Run it and approve the **UAC elevation** prompt as an administrator.
+2. Run it, then click **Administrator…** (or run `TaskDelegator.exe --admin`) and
+   approve the **UAC** prompt as an administrator.
 3. On the **Create delegation** tab:
    - Pick an application (or **Browse…** to a `.exe`).
    - Pick the **target Windows user** (works for standard users).
    - Leave **Run as: SYSTEM** (no password), or choose **Admin account** and enter
      an administrator account + password.
-   - Leave **Create a shortcut on the user's desktop** checked.
+   - Keep **Add the 'Allowed Programs' launcher to the user's desktop** checked (and
+     optionally the direct per-app shortcut).
    - Click **Create delegation**.
-4. That user can now launch the app with admin rights from their desktop — even
-   when logged in as a standard user, with the window on their own screen.
-5. The **Existing delegations** tab lists everything and lets you remove any.
+4. The **Existing delegations** tab lists everything and lets you remove any.
+
+### Student / standard user — run allowed programs
+
+The student just opens **Allowed Programs** (the desktop launcher, or
+`TaskDelegator.exe` with no arguments — no UAC prompt). It lists the programs
+assigned to them; double-clicking one runs it with administrator rights, on their
+own desktop. The launcher is **run-only**: there is no uninstall, remove, or
+configuration action, and a student cannot reach the admin console without
+administrator credentials. This suits a training lab / classroom (آموزشگاه), where
+students must run software that needs admin rights but must not be able to change
+or remove it.
 
 Creating a delegation copies the portable exe once to
 `C:\ProgramData\AppDelegation\TaskDelegator.exe` so the scheduled task keeps working
@@ -110,15 +128,25 @@ after you move or delete the copy you ran. Actions are logged to
 خروجی نهایی یک فایل **`TaskDelegator.exe`** تک‌فایلی و پورتابل است که توسط **CI/CD
 (GitHub Actions)** ساخته می‌شود؛ از تب Actions در بخش Artifacts قابل دانلود است.
 
-طرز استفاده:
+این برنامه برای **محیط آموزشگاه** مناسب است: دانشجو (کاربر استاندارد) فقط می‌تواند
+برنامه‌های مجاز را **اجرا** کند و **نمی‌تواند** آن‌ها را حذف/uninstall کند یا به بخش
+تنظیمات ادمین دسترسی پیدا کند.
 
-1. `TaskDelegator.exe` را روی ویندوز اجرا کنید و در پنجرهٔ **UAC** به‌عنوان ادمین
-   تأیید کنید (همین «لاگین ادمین» است).
+طرز استفاده (ادمین):
+
+1. `TaskDelegator.exe` را اجرا کنید، روی **Administrator…** بزنید (یا
+   `TaskDelegator.exe --admin`) و در پنجرهٔ **UAC** به‌عنوان ادمین تأیید کنید (همین
+   «لاگین ادمین» است).
 2. در تب **Create delegation**: نرم‌افزار و کاربر را انتخاب کنید؛ حالت **SYSTEM**
-   (بدون رمز) یا **Admin account** را انتخاب کنید؛ گزینهٔ ساخت شورتکات را فعال
-   بگذارید و روی **Create delegation** بزنید.
-3. حالا آن کاربر عادی می‌تواند از روی دسکتاپ خودش نرم‌افزار را با دسترسی ادمین و بدون
-   رمز اجرا کند.
+   (بدون رمز) یا **Admin account** را انتخاب کنید؛ گزینهٔ **Allowed Programs launcher**
+   را فعال بگذارید و روی **Create delegation** بزنید.
+
+طرز استفاده (دانشجو / کاربر عادی):
+
+- آیکن **Allowed Programs** روی دسکتاپ را باز کند (یا `TaskDelegator.exe` بدون
+  آرگومان — بدون UAC). برنامه‌های مجازِ او لیست می‌شود؛ با دابل‌کلیک، برنامه با دسترسی
+  ادمین و روی دسکتاپ خودش اجرا می‌شود. این پنجره **فقط اجرا** است — هیچ گزینهٔ حذف/
+  uninstall یا تنظیماتی ندارد.
 
 ⚠️ **هشدار امنیتی:** تفویض یک نرم‌افزار دقیقاً مثل دادن `sudo` برای آن است. فقط
 نرم‌افزارهای **مورد اعتماد و تک‌منظوره** را تفویض کنید. همچنین فایل اجرایی برنامه باید

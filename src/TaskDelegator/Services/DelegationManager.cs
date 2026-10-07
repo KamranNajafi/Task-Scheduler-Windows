@@ -32,6 +32,10 @@ public static class DelegationManager
         // what runs as SYSTEM).
         Harden(Paths.DelegationsDir, allowUsersRead: false);
         Harden(Paths.CredentialsDir, allowUsersRead: false);
+        // Menu entries only carry a friendly name + task name so the run-only
+        // student launcher can list a user's apps; readable by Users, writable by
+        // SYSTEM + Administrators only (students cannot add/alter entries).
+        Harden(Paths.MenuDir, allowUsersRead: true);
     }
 
     private static void Harden(string dir, bool allowUsersRead)
@@ -64,7 +68,8 @@ public static class DelegationManager
 
     public static CreateResult Create(
         string exe, string? args, string friendlyName, LocalUserInfo user,
-        RunAsMode mode, string? accountUser, string? accountPassword, bool makeShortcut)
+        RunAsMode mode, string? accountUser, string? accountPassword,
+        bool makeShortcut, bool makeLauncherShortcut)
     {
         if (string.IsNullOrWhiteSpace(exe) || !File.Exists(exe))
             throw new ArgumentException("A valid executable (.exe) is required.");
@@ -106,21 +111,31 @@ public static class DelegationManager
             JsonSerializer.Serialize(cfg, JsonOpts), new UTF8Encoding(false));
 
         RegisterTask(taskName, stableExe, user.Sid, cfg.FriendlyName, user.Name);
+        WriteMenuEntry(cfg, exe);
 
         AuditLog.Write($"CREATED task={taskName} app='{exe}' args='{args}' mode={mode} runas='{(mode == RunAsMode.Account ? accountUser : "SYSTEM")}' foruser={user.Name} by={cfg.CreatedBy}");
 
         string? shortcut = null;
         string note = "";
-        if (makeShortcut)
+        if (makeShortcut || makeLauncherShortcut)
         {
             string? desktop = GetUserDesktop(user.Sid);
             if (string.IsNullOrEmpty(desktop))
             {
-                desktop = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory));
-                note = " (user profile not found; shortcut placed on the Public desktop)";
+                desktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
+                note = " (user profile not found; shortcut(s) placed on the Public desktop)";
             }
-            shortcut = CreateShortcut(taskName, cfg.FriendlyName, exe, desktop);
-            AuditLog.Write($"SHORTCUT {shortcut}");
+            if (makeShortcut)
+            {
+                shortcut = CreateShortcut(taskName, cfg.FriendlyName, exe, desktop);
+                AuditLog.Write($"SHORTCUT {shortcut}");
+            }
+            if (makeLauncherShortcut)
+            {
+                var launcher = CreateLauncherShortcut(desktop);
+                AuditLog.Write($"LAUNCHER_SHORTCUT {launcher}");
+                shortcut ??= launcher;
+            }
         }
 
         return new CreateResult
@@ -129,6 +144,34 @@ public static class DelegationManager
             ShortcutPath = shortcut,
             Note = note
         };
+    }
+
+    private static void WriteMenuEntry(DelegationConfig cfg, string appExe)
+    {
+        var entry = new MenuEntry
+        {
+            TaskName = cfg.TaskName,
+            FriendlyName = cfg.FriendlyName,
+            TargetUserSid = cfg.TargetUserSid,
+            IconPath = appExe
+        };
+        File.WriteAllText(Path.Combine(Paths.MenuDir, cfg.TaskName + ".json"),
+            JsonSerializer.Serialize(entry, JsonOpts), new UTF8Encoding(false));
+    }
+
+    private static string CreateLauncherShortcut(string desktop)
+    {
+        Directory.CreateDirectory(desktop);
+        string lnk = Path.Combine(desktop, "Allowed Programs.lnk");
+        var t = Type.GetTypeFromProgID("WScript.Shell")
+                ?? throw new InvalidOperationException("WScript.Shell is unavailable.");
+        dynamic shell = Activator.CreateInstance(t)!;
+        dynamic sc = shell.CreateShortcut(lnk);
+        sc.TargetPath = Paths.InstalledExe;   // opens the run-only student launcher
+        sc.Description = "Allowed Programs — run approved applications with administrator rights";
+        if (File.Exists(Paths.InstalledExe)) sc.IconLocation = Paths.InstalledExe + ",0";
+        sc.Save();
+        return lnk;
     }
 
     private static void RegisterTask(string taskName, string stableExe, string userSid, string friendly, string targetUser)
@@ -222,6 +265,7 @@ public static class DelegationManager
 
         TryDelete(Path.Combine(Paths.DelegationsDir, taskName + ".json"));
         TryDelete(Path.Combine(Paths.CredentialsDir, $"cred_{taskName}.bin"));
+        TryDelete(Path.Combine(Paths.MenuDir, taskName + ".json"));
         TryDelete(Path.Combine(Paths.DataDir, $"run_{taskName}.vbs"));
         RemoveShortcuts(taskName);
 

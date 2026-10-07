@@ -22,7 +22,8 @@ public sealed class MainForm : Form
     private readonly TextBox _password = new() { UseSystemPasswordChar = true };
     private readonly Label _accountLbl = new() { Text = "Account:", AutoSize = true };
     private readonly Label _passwordLbl = new() { Text = "Password:", AutoSize = true };
-    private readonly CheckBox _makeShortcut = new() { Text = "Create a shortcut on the user's desktop", Checked = true, AutoSize = true };
+    private readonly CheckBox _makeShortcut = new() { Text = "Add a direct desktop shortcut for this app", Checked = true, AutoSize = true };
+    private readonly CheckBox _makeLauncher = new() { Text = "Add the 'Allowed Programs' launcher to the user's desktop", Checked = true, AutoSize = true };
     private readonly Button _create = new() { Text = "Create delegation" };
 
     private readonly ListView _delegations = NewListView();
@@ -35,10 +36,10 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = "Task Scheduler - Privileged App Delegation";
+        Text = "Privileged App Delegation - Administrator console";
         Width = 920;
-        Height = 660;
-        MinimumSize = new Size(820, 600);
+        Height = 700;
+        MinimumSize = new Size(820, 640);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 9f);
 
@@ -103,7 +104,7 @@ public sealed class MainForm : Form
 
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 224));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 252));
 
         var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Vertical };
 
@@ -142,12 +143,12 @@ public sealed class MainForm : Form
 
     private Control BuildSettings()
     {
-        var t = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 6, Padding = new Padding(2, 6, 2, 2) };
+        var t = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 4, RowCount = 7, Padding = new Padding(2, 6, 2, 2) };
         t.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         t.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         t.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210));
-        for (int i = 0; i < 6; i++) t.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        for (int i = 0; i < 7; i++) t.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         _exe.Dock = DockStyle.Fill;
         _args.Dock = DockStyle.Fill;
@@ -197,8 +198,11 @@ public sealed class MainForm : Form
         t.Controls.Add(_password, 3, 4);
 
         t.Controls.Add(_makeShortcut, 1, 5);
-        t.SetColumnSpan(_makeShortcut, 2);
-        t.Controls.Add(_create, 3, 5);
+        t.SetColumnSpan(_makeShortcut, 3);
+
+        t.Controls.Add(_makeLauncher, 1, 6);
+        t.SetColumnSpan(_makeLauncher, 2);
+        t.Controls.Add(_create, 3, 6);
 
         return t;
     }
@@ -350,7 +354,8 @@ public sealed class MainForm : Form
 
             var result = DelegationManager.Create(
                 exe, _args.Text.Trim(), _shortcut.Text.Trim(), user,
-                mode, _account.Text.Trim(), _password.Text, _makeShortcut.Checked);
+                mode, _account.Text.Trim(), _password.Text,
+                _makeShortcut.Checked, _makeLauncher.Checked);
 
             _password.Clear();
             RefreshDelegations();
