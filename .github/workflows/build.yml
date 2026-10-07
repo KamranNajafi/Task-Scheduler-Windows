@@ -13,7 +13,7 @@ on:
         default: ""
 
 permissions:
-  contents: write   # needed to attach the exe to a Release on tag builds
+  contents: write   # lets the in-Actions GITHUB_TOKEN create the tag + release
 
 jobs:
   build:
@@ -58,13 +58,34 @@ jobs:
           path: publish/TaskDelegator.exe
           if-no-files-found: error
 
-      - name: Publish GitHub Release (tag push or manual dispatch with a tag)
-        if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
+      # Resolve a release tag from any of: a pushed tag, a manual dispatch input,
+      # or a branch push whose head commit says [release] (tag read from VERSION).
+      - name: Determine release tag
+        id: rel
+        shell: bash
+        env:
+          REF: ${{ github.ref }}
+          INPUT_TAG: ${{ inputs.release_tag }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          tag=""
+          if [[ "${REF}" == refs/tags/v* ]]; then
+            tag="${REF#refs/tags/}"
+          elif [[ -n "${INPUT_TAG}" ]]; then
+            tag="${INPUT_TAG}"
+          elif [[ "${COMMIT_MSG}" == *"[release]"* && -f VERSION ]]; then
+            tag="$(tr -d '[:space:]' < VERSION)"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "Resolved release tag: '${tag}'"
+
+      - name: Publish GitHub Release
+        if: steps.rel.outputs.tag != ''
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.release_tag != '' && inputs.release_tag || github.ref_name }}
+          tag_name: ${{ steps.rel.outputs.tag }}
           target_commitish: ${{ github.sha }}
-          name: Task Delegator ${{ inputs.release_tag != '' && inputs.release_tag || github.ref_name }}
+          name: Task Delegator ${{ steps.rel.outputs.tag }}
           files: publish/TaskDelegator.exe
           fail_on_unmatched_files: true
           generate_release_notes: true
