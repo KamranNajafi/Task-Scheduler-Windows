@@ -1,0 +1,14 @@
+# Build / editor
+.vs/
+bin/
+obj/
+*.user
+
+# Local logs / runtime data (this tool writes to C:\ProgramData\AppDelegation)
+*.log
+audit.log
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
