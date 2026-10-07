@@ -53,9 +53,22 @@ jobs:
           path: publish/TaskDelegator.exe
           if-no-files-found: error
 
-      - name: Attach to Release (tags only)
+      - name: Publish GitHub Release (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          name: Task Delegator ${{ github.ref_name }}
           files: publish/TaskDelegator.exe
           fail_on_unmatched_files: true
+          generate_release_notes: true
+          body: |
+            Portable, self-contained Windows executable — no installation, no .NET
+            runtime required on the target machine.
+
+            **TaskDelegator.exe** — Privileged Application Delegation for Windows.
+            An administrator lets a standard (non-admin) user run specific approved
+            applications with administrator rights, without the admin password, and
+            with a run-only "Allowed Programs" launcher for classroom / lab use.
+            See the README for usage and the security model.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
