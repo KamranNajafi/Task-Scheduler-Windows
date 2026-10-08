@@ -263,7 +263,7 @@ public sealed class MainForm : Form
         string q = _filter.Text.Trim();
         IEnumerable<InstalledApp> src = _allApps;
         if (q.Length > 0)
-            src = _allApps.Where(a => a.DisplayName.Contains(q, StringComparison.OrdinalIgnoreCase));
+            src = _allApps.Where(a => a.DisplayName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0);
 
         _software.BeginUpdate();
         _software.Items.Clear();

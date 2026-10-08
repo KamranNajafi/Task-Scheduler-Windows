@@ -10,9 +10,9 @@ namespace TaskDelegator.Services;
 
 public sealed class CreateResult
 {
-    public string TaskPath { get; init; } = "";
-    public string? ShortcutPath { get; init; }
-    public string Note { get; init; } = "";
+    public string TaskPath { get; set; } = "";
+    public string? ShortcutPath { get; set; }
+    public string Note { get; set; } = "";
 }
 
 /// <summary>Creates, lists, and removes delegations (scheduled task + descriptor + shortcut).</summary>
@@ -288,10 +288,23 @@ public static class DelegationManager
 
     private static string EnsureInstalledExe()
     {
-        string current = Environment.ProcessPath ?? Application.ExecutablePath;
+        string current = Application.ExecutablePath;
         string target = Paths.InstalledExe;
-        if (!string.Equals(current, target, StringComparison.OrdinalIgnoreCase))
-            File.Copy(current, target, overwrite: true);
+        if (string.Equals(current, target, StringComparison.OrdinalIgnoreCase))
+            return target; // already running from the installed location
+
+#if NETFRAMEWORK
+        // The .NET Framework (Windows 7) build is not single-file: copy the exe AND
+        // its dependency DLLs into ProgramData so the SYSTEM-invoked copy can load them.
+        string srcDir = Path.GetDirectoryName(current) ?? "";
+        foreach (var f in Directory.EnumerateFiles(srcDir))
+        {
+            try { File.Copy(f, Path.Combine(Paths.DataDir, Path.GetFileName(f)), true); }
+            catch { /* skip locked/duplicate files */ }
+        }
+#else
+        File.Copy(current, target, overwrite: true);
+#endif
         return target;
     }
 
@@ -374,7 +387,7 @@ public static class DelegationManager
                     dynamic shell = Activator.CreateInstance(t)!;
                     dynamic sc = shell.CreateShortcut(lnk);
                     string argsVal = (string)sc.Arguments;
-                    if (argsVal.Contains(taskName, StringComparison.OrdinalIgnoreCase))
+                    if (argsVal.IndexOf(taskName, StringComparison.OrdinalIgnoreCase) >= 0)
                         TryDelete(lnk);
                 }
                 catch { /* ignore */ }

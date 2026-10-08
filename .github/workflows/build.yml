@@ -22,7 +22,6 @@ jobs:
     env:
       PROJECT: src/TaskDelegator/TaskDelegator.csproj
       CONFIG: Release
-      RID: win-x64
 
     steps:
       - name: Checkout
@@ -36,26 +35,44 @@ jobs:
       - name: Restore
         run: dotnet restore $env:PROJECT
 
-      - name: Publish portable single-file exe
+      - name: Publish Windows 10/11 build (net8, portable single-file)
         run: >
           dotnet publish $env:PROJECT
           -c $env:CONFIG
-          -r $env:RID
+          -f net8.0-windows
+          -r win-x64
           --self-contained true
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:DebugType=embedded
           -p:EnableCompressionInSingleFile=true
-          -o publish
+          -o publish/net8
+
+      - name: Publish Windows 7 build (net48, needs .NET Framework 4.8)
+        run: dotnet publish $env:PROJECT -c $env:CONFIG -f net48 -o publish/net48
+
+      - name: Zip Windows 7 (net48) output
+        shell: pwsh
+        run: Compress-Archive -Path publish/net48/* -DestinationPath publish/TaskDelegator-win7-net48.zip -Force
 
       - name: Show output
-        run: Get-ChildItem publish
+        shell: pwsh
+        run: |
+          Get-ChildItem publish/net8
+          Get-ChildItem publish/*.zip
 
-      - name: Upload build artifact
+      - name: Upload Windows 10/11 artifact (portable exe)
         uses: actions/upload-artifact@v4
         with:
-          name: TaskDelegator-${{ env.RID }}
-          path: publish/TaskDelegator.exe
+          name: TaskDelegator-win-x64
+          path: publish/net8/TaskDelegator.exe
+          if-no-files-found: error
+
+      - name: Upload Windows 7 artifact (net48 zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TaskDelegator-win7-net48
+          path: publish/TaskDelegator-win7-net48.zip
           if-no-files-found: error
 
       # Resolve a release tag from any of: a pushed tag, a manual dispatch input,
@@ -86,17 +103,24 @@ jobs:
           tag_name: ${{ steps.rel.outputs.tag }}
           target_commitish: ${{ github.sha }}
           name: Task Delegator ${{ steps.rel.outputs.tag }}
-          files: publish/TaskDelegator.exe
+          files: |
+            publish/net8/TaskDelegator.exe
+            publish/TaskDelegator-win7-net48.zip
           fail_on_unmatched_files: true
           generate_release_notes: true
           body: |
-            Portable, self-contained Windows executable — no installation, no .NET
-            runtime required on the target machine.
+            Privileged Application Delegation for Windows — an administrator lets a
+            standard (non-admin) user run specific approved applications with
+            administrator rights, without the admin password, with a run-only
+            "Allowed Programs" launcher for classroom / lab use.
 
-            **TaskDelegator.exe** — Privileged Application Delegation for Windows.
-            An administrator lets a standard (non-admin) user run specific approved
-            applications with administrator rights, without the admin password, and
-            with a run-only "Allowed Programs" launcher for classroom / lab use.
+            **Downloads**
+            - `TaskDelegator.exe` — Windows 10 / 11 (x64). Portable, self-contained,
+              no .NET install required.
+            - `TaskDelegator-win7-net48.zip` — Windows 7 SP1 / 8.1 / 10 / 11. Extract
+              and run `TaskDelegator.exe`; requires **.NET Framework 4.8** on the
+              machine (preinstalled on Windows 10/11; installable on Windows 7 SP1).
+
             See the README for usage and the security model.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

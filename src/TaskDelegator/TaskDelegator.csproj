@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- net8.0-windows: portable single-file build for Windows 10/11.
+         net48: runs on Windows 7 SP1, 8.1, 10, 11 (needs .NET Framework 4.8). -->
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -17,10 +19,28 @@
          (see .github/workflows/build.yml) so a plain `dotnet build` still works. -->
   </PropertyGroup>
 
+  <!-- Common -->
   <ItemGroup>
     <PackageReference Include="TaskScheduler" Version="2.11.0" />
+  </ItemGroup>
+
+  <!-- Windows 10/11 build (.NET 8): JSON, WMI and DPAPI ship in the runtime/packages. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
     <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Windows 7 build (.NET Framework 4.8): WMI, DPAPI and dynamic COM come from the
+       framework; System.Text.Json is added as a package; reference assemblies let the
+       project build with the dotnet CLI on any runner. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Security" />
+    <Reference Include="Microsoft.CSharp" />
+    <!-- Satisfies the default implicit 'global using System.Net.Http;' on .NET Framework. -->
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
 </Project>

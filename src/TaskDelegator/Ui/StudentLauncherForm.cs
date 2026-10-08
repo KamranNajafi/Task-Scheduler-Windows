@@ -170,7 +170,7 @@ public sealed class StudentLauncherForm : Form
         {
             var psi = new ProcessStartInfo
             {
-                FileName = Environment.ProcessPath ?? Application.ExecutablePath,
+                FileName = Application.ExecutablePath,
                 Arguments = "--admin",
                 UseShellExecute = true,
                 Verb = "runas"

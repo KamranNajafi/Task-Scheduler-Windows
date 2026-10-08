@@ -89,8 +89,8 @@ public static class SessionLauncher
         int i = account.IndexOf('\\');
         if (i > 0)
         {
-            domain = account[..i];
-            user = account[(i + 1)..];
+            domain = account.Substring(0, i);
+            user = account.Substring(i + 1);
         }
         else
         {

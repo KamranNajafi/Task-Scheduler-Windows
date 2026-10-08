@@ -60,24 +60,43 @@ See [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md) and
 
 ---
 
+## Supported operating systems
+
+The tool is **Windows-only** (built on Windows Task Scheduler + Windows session
+APIs). Two builds are produced:
+
+| Build | Runs on | Notes |
+|---|---|---|
+| **`TaskDelegator.exe`** (net8, x64) | **Windows 10 / 11** and recent Windows Server | Portable, self-contained single file — **no .NET install required**. |
+| **`TaskDelegator-win7-net48.zip`** (net48, AnyCPU) | **Windows 7 SP1, 8.1, 10, 11** (32- or 64-bit) | Extract and run `TaskDelegator.exe`; requires **.NET Framework 4.8** (preinstalled on Win 10/11; installable on Win 7 SP1). |
+
+> Windows 7 reached end of support in 2020 and no longer receives security
+> updates; the Win 7 build is provided for legacy labs that still require it.
+> Windows XP is **not** supported (no UAC, no Task Scheduler 2.0).
+
 ## Get the executable
 
-**CI/CD (GitHub Actions) builds the portable `.exe` automatically** — see
+**CI/CD (GitHub Actions) builds both automatically** — see
 [`.github/workflows/build.yml`](.github/workflows/build.yml).
 
-- **Every push / PR:** download `TaskDelegator-win-x64` from the run's **Artifacts**
-  (Actions tab → latest run).
-- **Tagged release (`v*`):** the `.exe` is attached to the GitHub **Release**.
+- **Every push / PR:** download `TaskDelegator-win-x64` (Win 10/11) or
+  `TaskDelegator-win7-net48` (Win 7+) from the run's **Artifacts** (Actions tab).
+- **Tagged release (`v*`):** both are attached to the GitHub **Release**.
 
 ### Build it yourself
 
 Requires the .NET 8 SDK on a Windows machine:
 
 ```powershell
-dotnet publish src/TaskDelegator/TaskDelegator.csproj -c Release -r win-x64 `
-  --self-contained true -p:PublishSingleFile=true `
-  -p:IncludeNativeLibrariesForSelfExtract=true -o publish
-# -> publish\TaskDelegator.exe   (portable, self-contained)
+# Windows 10/11 — portable, self-contained single file
+dotnet publish src/TaskDelegator/TaskDelegator.csproj -c Release -f net8.0-windows `
+  -r win-x64 --self-contained true -p:PublishSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true -o publish/net8
+# -> publish\net8\TaskDelegator.exe
+
+# Windows 7 SP1+ — needs .NET Framework 4.8 on the target machine
+dotnet publish src/TaskDelegator/TaskDelegator.csproj -c Release -f net48 -o publish/net48
+# -> publish\net48\  (TaskDelegator.exe + dependency DLLs)
 ```
 
 ---

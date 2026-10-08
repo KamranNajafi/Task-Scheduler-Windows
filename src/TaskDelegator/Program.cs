@@ -16,7 +16,10 @@ internal static class Program
         if (args.Length >= 2 && args[0].Equals("--launch", StringComparison.OrdinalIgnoreCase))
             return SessionLauncher.Run(args[1]);
 
+#if NET8_0_OR_GREATER
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+#endif
+        // On .NET Framework (Windows 7 build) DPI awareness comes from app.manifest.
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 
@@ -57,7 +60,7 @@ internal static class Program
         {
             var psi = new ProcessStartInfo
             {
-                FileName = Environment.ProcessPath ?? Application.ExecutablePath,
+                FileName = Application.ExecutablePath,
                 Arguments = "--admin",
                 UseShellExecute = true,
                 Verb = "runas"
