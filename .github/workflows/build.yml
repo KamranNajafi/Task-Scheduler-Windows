@@ -55,11 +55,30 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path publish/net48/* -DestinationPath publish/TaskDelegator-win7-net48.zip -Force
 
+      - name: Download Visual C++ redistributable (x64)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path redist | Out-Null
+          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile redist/vc_redist.x64.exe
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer (Windows 10/11, bundles VC++ runtime)
+        shell: pwsh
+        run: |
+          $ver = (Get-Content VERSION -Raw).Trim().TrimStart('v')
+          if (-not $ver) { $ver = "1.0.0" }
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$ver" installer/TaskDelegator.iss
+          Get-ChildItem installer_out
+
       - name: Show output
         shell: pwsh
         run: |
           Get-ChildItem publish/net8
           Get-ChildItem publish/*.zip
+          Get-ChildItem installer_out
 
       - name: Upload Windows 10/11 artifact (portable exe)
         uses: actions/upload-artifact@v4
@@ -73,6 +92,13 @@ jobs:
         with:
           name: TaskDelegator-win7-net48
           path: publish/TaskDelegator-win7-net48.zip
+          if-no-files-found: error
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TaskDelegatorSetup
+          path: installer_out/TaskDelegatorSetup.exe
           if-no-files-found: error
 
       # Resolve a release tag from any of: a pushed tag, a manual dispatch input,
@@ -104,6 +130,7 @@ jobs:
           target_commitish: ${{ github.sha }}
           name: Task Delegator ${{ steps.rel.outputs.tag }}
           files: |
+            installer_out/TaskDelegatorSetup.exe
             publish/net8/TaskDelegator.exe
             publish/TaskDelegator-win7-net48.zip
           fail_on_unmatched_files: true
@@ -115,11 +142,15 @@ jobs:
             "Allowed Programs" launcher for classroom / lab use.
 
             **Downloads**
-            - `TaskDelegator.exe` — Windows 10 / 11 (x64). Portable, self-contained,
-              no .NET install required.
+            - `TaskDelegatorSetup.exe` — **recommended installer** for Windows 10 / 11.
+              Installs the app and, if missing, silently installs the Microsoft Visual
+              C++ runtime — no prerequisites to set up by hand.
+            - `TaskDelegator.exe` — Windows 10 / 11 (x64), portable single file.
+              Requires the Visual C++ runtime on the machine (use the installer if you
+              hit a "side-by-side configuration is incorrect" error).
             - `TaskDelegator-win7-net48.zip` — Windows 7 SP1 / 8.1 / 10 / 11. Extract
-              and run `TaskDelegator.exe`; requires **.NET Framework 4.8** on the
-              machine (preinstalled on Windows 10/11; installable on Windows 7 SP1).
+              and run `TaskDelegator.exe`; requires **.NET Framework 4.8** (preinstalled
+              on Windows 10/11; installable on Windows 7 SP1). No VC++ runtime needed.
 
             See the README for usage and the security model.
         env:

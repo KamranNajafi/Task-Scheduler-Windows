@@ -3,6 +3,8 @@
 bin/
 obj/
 publish/
+installer_out/
+redist/
 *.user
 *.binlog
 

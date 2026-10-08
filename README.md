@@ -76,12 +76,21 @@ APIs). Two builds are produced:
 
 ## Get the executable
 
-**CI/CD (GitHub Actions) builds both automatically** — see
-[`.github/workflows/build.yml`](.github/workflows/build.yml).
+**CI/CD (GitHub Actions) builds everything automatically** — see
+[`.github/workflows/build.yml`](.github/workflows/build.yml). Three downloads are
+produced:
 
-- **Every push / PR:** download `TaskDelegator-win-x64` (Win 10/11) or
-  `TaskDelegator-win7-net48` (Win 7+) from the run's **Artifacts** (Actions tab).
-- **Tagged release (`v*`):** both are attached to the GitHub **Release**.
+- **`TaskDelegatorSetup.exe`** — recommended installer for **Windows 10/11**.
+  Installs the app to Program Files, creates Start-menu/desktop shortcuts, and — if
+  the Microsoft Visual C++ runtime is missing — installs it silently from the bundled
+  copy. No prerequisites to set up by hand; ideal for lab deployment (also
+  GPO-deployable with `/VERYSILENT`).
+- **`TaskDelegator.exe`** — portable single file (Win 10/11); needs the VC++ runtime.
+- **`TaskDelegator-win7-net48.zip`** — Win 7 SP1 / 8.1 / 10 / 11; needs .NET
+  Framework 4.8 (in-box on Win 10/11), no VC++ runtime.
+
+Get them from the latest run's **Artifacts** (Actions tab), or attached to the
+GitHub **Release** on a `v*` tag.
 
 ### Build it yourself
 
