@@ -184,6 +184,13 @@ after you move or delete the copy you ran. Actions are logged to
   and any error. The app must exist at the recorded path.
 - **SYSTEM vs Admin account.** SYSTEM mode needs no password and is simplest. If an
   app misbehaves under the SYSTEM profile, use **Admin account** mode.
+- **"The application has failed to start because its side-by-side configuration is
+  incorrect."** This is the self-contained **net8** `TaskDelegator.exe` missing the
+  **Microsoft Visual C++ Redistributable (x64)** — common on clean / freshly-imaged
+  lab PCs. Two fixes: install the VC++ 2015–2022 x64 Redistributable on the machine,
+  **or** use the **`TaskDelegator-win7-net48.zip`** build instead — it uses the
+  built-in .NET Framework 4.8 (present on Windows 10/11) and needs no extra runtime,
+  so it is the recommended build for computer labs.
 
 ## Responsible use
 
