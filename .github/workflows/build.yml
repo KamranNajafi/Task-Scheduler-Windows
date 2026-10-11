@@ -32,6 +32,16 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: Read version from VERSION
+        shell: pwsh
+        run: |
+          $raw = (Get-Content VERSION -Raw).Trim()
+          if (-not $raw) { $raw = "v1.0.0" }
+          $num = $raw.TrimStart('v','V')
+          "APPVER=$num"   | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "APPVER_V=$raw" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Version: display=$raw numeric=$num"
+
       - name: Restore
         run: dotnet restore $env:PROJECT
 
@@ -46,10 +56,18 @@ jobs:
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:DebugType=embedded
           -p:EnableCompressionInSingleFile=true
+          -p:Version=${{ env.APPVER }}
+          -p:InformationalVersion=${{ env.APPVER_V }}
           -o publish/net8
 
       - name: Publish Windows 7 build (net48, needs .NET Framework 4.8)
-        run: dotnet publish $env:PROJECT -c $env:CONFIG -f net48 -o publish/net48
+        run: >
+          dotnet publish $env:PROJECT
+          -c $env:CONFIG
+          -f net48
+          -p:Version=${{ env.APPVER }}
+          -p:InformationalVersion=${{ env.APPVER_V }}
+          -o publish/net48
 
       - name: Zip Windows 7 (net48) output
         shell: pwsh
@@ -62,7 +80,7 @@ jobs:
       - name: Build installer (net48 payload, no VC++ dependency)
         shell: pwsh
         run: |
-          $ver = (Get-Content VERSION -Raw).Trim().TrimStart('v')
+          $ver = "${{ env.APPVER }}"
           if (-not $ver) { $ver = "1.0.0" }
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$ver" installer/TaskDelegator.iss
           Get-ChildItem installer_out

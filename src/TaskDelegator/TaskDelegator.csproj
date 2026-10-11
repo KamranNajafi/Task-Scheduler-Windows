@@ -18,9 +18,23 @@
          relaunch for the admin console) and DPI awareness are handled in code
          (Program.cs), so no manifest is required. -->
     <NoWin32Manifest>true</NoWin32Manifest>
-    <Version>1.0.0</Version>
+    <!-- Single source of truth for the version = the repo-root VERSION file, so every
+         build (CI or local) shows the current version automatically with no extra flags.
+         VERSION holds e.g. "v1.7.0"; <Version> needs a numeric form (1.7.0) while
+         <InformationalVersion> keeps the display form ("v1.7.0") shown in the UI. -->
+    <_VersionFile>$(MSBuildThisFileDirectory)..\..\VERSION</_VersionFile>
+    <_VersionRaw Condition="Exists('$(_VersionFile)')">$([System.IO.File]::ReadAllText('$(_VersionFile)'))</_VersionRaw>
+    <_Version Condition="'$(_VersionRaw)' != ''">$(_VersionRaw.Trim())</_Version>
+    <_Version Condition="'$(_Version)' == ''">v1.0.0</_Version>
+    <!-- <Version> must be numeric (1.7.0); strip the leading "v" with String.Replace
+         (version numbers contain no other 'v', and Regex is not a guaranteed MSBuild
+         property function). CI also passes -p:Version / -p:InformationalVersion. -->
+    <Version>$(_Version.Replace('v', '').Replace('V', ''))</Version>
+    <InformationalVersion>$(_Version)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>Task Scheduler - Privileged App Delegation</Product>
     <Company>Kamran Najafi</Company>
+    <Authors>Kamran Najafi</Authors>
     <!-- Publish/single-file settings are passed on the CI command line
          (see .github/workflows/build.yml) so a plain `dotnet build` still works. -->
   </PropertyGroup>

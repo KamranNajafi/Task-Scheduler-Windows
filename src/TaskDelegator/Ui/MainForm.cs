@@ -37,7 +37,7 @@ public sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = "Privileged App Delegation - Administrator console";
+        Text = $"Privileged App Delegation {AppInfo.Version} — Administrator console";
         Width = 920;
         Height = 700;
         MinimumSize = new Size(820, 640);
@@ -80,6 +80,18 @@ public sealed class MainForm : Form
             AutoSize = true,
             Location = new Point(16, 40)
         };
+        var version = new Label
+        {
+            Text = AppInfo.Version,
+            Dock = DockStyle.Right,
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI Semibold", 12f, FontStyle.Bold),
+            TextAlign = ContentAlignment.MiddleRight,
+            AutoSize = false,
+            Width = 130,
+            Padding = new Padding(0, 0, 14, 0)
+        };
+        header.Controls.Add(version);
         header.Controls.Add(title);
         header.Controls.Add(who);
         return header;

@@ -29,7 +29,7 @@ public sealed class StudentLauncherForm : Form
 
     public StudentLauncherForm()
     {
-        Text = "Allowed Programs";
+        Text = $"Allowed Programs {AppInfo.Version}";
         Width = 560;
         Height = 480;
         MinimumSize = new Size(440, 360);
@@ -69,6 +69,17 @@ public sealed class StudentLauncherForm : Form
             ForeColor = Color.FromArgb(220, 236, 255),
             AutoSize = true,
             Location = new Point(16, 34)
+        });
+        header.Controls.Add(new Label
+        {
+            Text = AppInfo.Version,
+            Dock = DockStyle.Right,
+            ForeColor = Color.White,
+            Font = new Font("Segoe UI Semibold", 11f, FontStyle.Bold),
+            TextAlign = ContentAlignment.MiddleRight,
+            AutoSize = false,
+            Width = 110,
+            Padding = new Padding(0, 0, 12, 0)
         });
         return header;
     }

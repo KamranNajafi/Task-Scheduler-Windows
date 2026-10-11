@@ -13,6 +13,8 @@
 #define AppName "Task Delegator"
 #define AppExe "TaskDelegator.exe"
 #define AppPublisher "Kamran Najafi"
+#define AppGitHub "https://github.com/KamranNajafi"
+#define AppRepo "https://github.com/KamranNajafi/Task-Scheduler-Windows"
 
 [Setup]
 AppId={{B3F2A1C4-7E9D-4A52-9C3B-7F1E2D6A5B40}}
@@ -20,6 +22,14 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
+AppPublisherURL={#AppGitHub}
+AppSupportURL={#AppRepo}
+AppContactURL={#AppRepo}
+AppComments=Created by {#AppPublisher} — {#AppRepo}
+VersionInfoVersion={#AppVersion}
+VersionInfoCompany={#AppPublisher}
+VersionInfoProductName={#AppName}
+VersionInfoDescription={#AppName} Setup {#AppVersion}
 DefaultDirName={autopf}\TaskDelegator
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
@@ -31,7 +41,11 @@ PrivilegesRequired=admin
 MinVersion=6.1sp1
 WizardStyle=modern
 UninstallDisplayIcon={app}\{#AppExe}
-UninstallDisplayName={#AppName}
+UninstallDisplayName={#AppName} {#AppVersion}
+
+[Messages]
+; Show the app name/version and the author + GitHub repository on the first wizard page.
+WelcomeLabel2=This will install [name/ver] on your computer.%n%nCreated by {#AppPublisher}%n{#AppRepo}%n%nIt is recommended that you close all other applications before continuing.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create an 'Allowed Programs' shortcut on the desktop"; GroupDescription: "Additional shortcuts:"
