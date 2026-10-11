@@ -11,7 +11,12 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>TaskDelegator</AssemblyName>
     <RootNamespace>TaskDelegator</RootNamespace>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- DIAGNOSTIC (v1.3.1): the custom manifest is disabled and NO Win32 manifest
+         is embedded, to isolate a side-by-side error (code 14001) on a lab PC.
+         If the app launches with no manifest, the manifest was the cause and a
+         proper one is restored; if it still fails, the PC's component store is. -->
+    <!-- <ApplicationManifest>app.manifest</ApplicationManifest> -->
+    <NoWin32Manifest>true</NoWin32Manifest>
     <Version>1.0.0</Version>
     <Product>Task Scheduler - Privileged App Delegation</Product>
     <Company>Kamran Najafi</Company>
