@@ -67,6 +67,21 @@ The launcher is **run-only**: no uninstall, remove, or settings action.
 | Shortcut landed on the **Public** desktop | That user has never signed in (no profile yet). | Have them sign in once, or leave it on Public. |
 | Warning: "executable is not under Program Files / Windows" | The delegated `.exe` is user-writable — it could be swapped for other code and run elevated. | Move the app to `Program Files` (admin-only) before delegating. |
 
+### 7. Administrator console messages (bottom status bar)
+
+The administrator console writes these in the bar at the bottom of its window. **Red** text
+means it stopped and needs a fix before you can continue.
+
+| Message | Cause | Fix |
+|---|---|---|
+| "Choose a valid executable (.exe)." | The **Executable** box is empty, or its path has surrounding quotes (`"C:\…\app.exe"`), a trailing icon index (`,0`), or an unexpanded `%variable%`, or the file isn't on this PC — this is why a path copied from the registry / a shortcut's *Target* is rejected even though the file exists. | Pick the app from the list or click **Browse…** to select the real `.exe`. Surrounding quotes, a `,0` icon index and `%environment%` variables are now cleaned automatically. |
+| "No executable auto-detected for '…'." | The selected app's registry entry has no usable executable path (no `DisplayIcon` / `InstallLocation`). | Click **Browse…** and pick the program's real `.exe`. |
+| "Select a target Windows user." | No user is selected in the **Target Windows user** list. | Click a user row (e.g. the Standard student account) before **Create delegation**. |
+| "Account mode needs an administrator account and password." | **Run as: Admin account** is selected, but the Account or Password field is empty. | Fill both fields, or switch to **SYSTEM (no password)**. |
+| "Select a delegation to remove." | **Remove selected** was clicked on the **Existing delegations** tab with no row selected. | Select a delegation row first, then **Remove selected**. |
+| "Load error: …" / "List error: …" | The console couldn't read installed software, users, or existing tasks — usually it isn't elevated, or registry / Task Scheduler access was denied. | Run **Task Delegator (Administrator)** and approve UAC as an administrator. |
+| "Failed: …" / "Remove failed: …" | Creating or removing the scheduled task failed — not elevated, a wrong admin account/password, or the **Task Scheduler** service is stopped. | Run elevated, re-check the account/password, and ensure the **Task Scheduler** service is running. Details are in `C:\ProgramData\AppDelegation\audit.log`. |
+
 ---
 
 ## فارسی
@@ -121,3 +136,18 @@ The launcher is **run-only**: no uninstall, remove, or settings action.
 | «No executable auto-detected for …» | آن نرم‌افزار مسیر اجراییِ تمیزی ثبت نکرده است. | روی **Browse…** بزنید و فایل `.exe` واقعی را انتخاب کنید. |
 | شورتکات روی دسکتاپ **Public** ساخته شد | آن کاربر هرگز لاگین نکرده (هنوز پروفایل ندارد). | یک‌بار لاگین کند، یا روی Public بماند. |
 | هشدار: «executable is not under Program Files / Windows» | فایل `.exe` تفویض‌شده قابل‌نوشتن توسط کاربر است — می‌تواند جایگزین و با دسترسی ادمین اجرا شود. | قبل از تفویض، برنامه را در `Program Files` (فقط-ادمین) بگذارید. |
+
+### ۷. پیام‌های کنسول ادمین (نوار پایین پنجره)
+
+کنسول ادمین این پیام‌ها را در نوار پایینِ پنجره نشان می‌دهد. متنِ **قرمز** یعنی کار متوقف
+شده و قبل از ادامه باید رفع شود.
+
+| پیام | علت | راه‌حل |
+|---|---|---|
+| «Choose a valid executable (.exe).» | کادر **Executable** خالی است، یا مسیرِ آن کوتیشن دارد (`"C:\…\app.exe"`)، یا شمارهٔ آیکن در انتها دارد (`,0`)، یا `%variable%` بازنشده دارد، یا فایل روی این سیستم نیست — به همین دلیل مسیری که از رجیستری یا از *Target* یک شورتکات کپی شده باشد رد می‌شود، هرچند فایل وجود دارد. | برنامه را از لیست انتخاب کنید یا روی **Browse…** بزنید و فایل `.exe` واقعی را انتخاب کنید. کوتیشن‌های دورِ مسیر، شمارهٔ آیکن `,0` و متغیرهای `%environment%` حالا به‌طور خودکار پاک می‌شوند. |
+| «No executable auto-detected for '…'.» | ورودیِ رجیستریِ آن نرم‌افزار مسیر اجراییِ قابل‌استفاده‌ای ندارد (نه `DisplayIcon` و نه `InstallLocation`). | روی **Browse…** بزنید و فایل `.exe` واقعیِ برنامه را انتخاب کنید. |
+| «Select a target Windows user.» | هیچ کاربری در لیست **Target Windows user** انتخاب نشده است. | قبل از **Create delegation** روی یک ردیفِ کاربر کلیک کنید (مثلاً حساب Standard دانشجو). |
+| «Account mode needs an administrator account and password.» | حالت **Run as: Admin account** انتخاب شده ولی کادر Account یا Password خالی است. | هر دو کادر را پر کنید، یا به حالت **SYSTEM (no password)** سوییچ کنید. |
+| «Select a delegation to remove.» | در تب **Existing delegations** روی **Remove selected** زده شده بدون انتخابِ ردیف. | اول یک ردیفِ تفویض را انتخاب و سپس **Remove selected** را بزنید. |
+| «Load error: …» / «List error: …» | کنسول نتوانست نرم‌افزارهای نصب‌شده، کاربران یا تسک‌های موجود را بخواند — معمولاً چون elevated نیست، یا دسترسی به رجیستری / Task Scheduler رد شده است. | **Task Delegator (Administrator)** را اجرا و UAC را با حساب ادمین تأیید کنید. |
+| «Failed: …» / «Remove failed: …» | ساخت یا حذفِ تسکِ زمان‌بندی‌شده شکست خورد — elevated نبودن، حساب/رمزِ ادمینِ اشتباه، یا متوقف‌بودنِ سرویس **Task Scheduler**. | برنامه را elevated اجرا کنید، حساب/رمز را دوباره بررسی کنید، و مطمئن شوید سرویس **Task Scheduler** در حال اجراست. جزئیات در `C:\ProgramData\AppDelegation\audit.log` هست. |

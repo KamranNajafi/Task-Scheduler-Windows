@@ -198,6 +198,59 @@
   </tr>
 </table>
 
+<h3>7. Administrator console messages (bottom status bar)</h3>
+<p>The administrator console writes these in the bar at the bottom of its window.
+   <b>Red</b> text means it stopped and needs a fix before you can continue.</p>
+<table>
+  <tr><th>Message</th><th>Cause</th><th>Fix</th></tr>
+  <tr>
+    <td>"Choose a valid executable (.exe)."</td>
+    <td>The <b>Executable</b> box is empty, or its path has surrounding quotes
+        (<code>"C:\…\app.exe"</code>), a trailing icon index (<code>,0</code>), or an
+        unexpanded <code>%variable%</code>, or the file is not on this PC. This is why a path
+        copied from the registry / a shortcut's <i>Target</i> is rejected even though the
+        file exists.</td>
+    <td>Pick the app from the list or click <b>Browse…</b> to select the real
+        <code>.exe</code>. Surrounding quotes, a <code>,0</code> icon index and
+        <code>%environment%</code> variables are now cleaned automatically.</td>
+  </tr>
+  <tr>
+    <td>"No executable auto-detected for '…'. Use Browse… to pick the .exe."</td>
+    <td>The selected app's registry entry has no usable executable path
+        (no <code>DisplayIcon</code> / <code>InstallLocation</code>).</td>
+    <td>Click <b>Browse…</b> and pick the program's real <code>.exe</code>.</td>
+  </tr>
+  <tr>
+    <td>"Select a target Windows user."</td>
+    <td>No user is selected in the <b>Target Windows user</b> list.</td>
+    <td>Click a user row (e.g. the Standard student account) before <b>Create delegation</b>.</td>
+  </tr>
+  <tr>
+    <td>"Account mode needs an administrator account and password."</td>
+    <td><b>Run as: Admin account</b> is selected, but the Account or Password field is empty.</td>
+    <td>Fill both fields, or switch to <b>SYSTEM (no password)</b>.</td>
+  </tr>
+  <tr>
+    <td>"Select a delegation to remove."</td>
+    <td><b>Remove selected</b> was clicked on the <b>Existing delegations</b> tab with no row
+        selected.</td>
+    <td>Select a delegation row first, then <b>Remove selected</b>.</td>
+  </tr>
+  <tr>
+    <td>"Load error: …" or "List error: …"</td>
+    <td>The console could not read installed software, users, or existing tasks — usually it
+        is not elevated, or registry / Task Scheduler access was denied.</td>
+    <td>Run <b>Task Delegator (Administrator)</b> and approve UAC as an administrator.</td>
+  </tr>
+  <tr>
+    <td>"Failed: …" or "Remove failed: …"</td>
+    <td>Creating or removing the scheduled task failed — not elevated, a wrong admin
+        account/password, or the <b>Task Scheduler</b> service is stopped.</td>
+    <td>Run elevated, re-check the account/password, and make sure the <b>Task Scheduler</b>
+        service is running. Details are in <code>C:\ProgramData\AppDelegation\audit.log</code>.</td>
+  </tr>
+</table>
+
 <!-- ======================= PERSIAN ======================= -->
 <div class="fa pagebreak">
 <h2>فارسی</h2>
@@ -303,6 +356,58 @@
     <td>فایل <code>.exe</code> تفویض‌شده در مسیری است که کاربر اجازهٔ نوشتن دارد — می‌تواند
         آن را با کد خودش جایگزین و با دسترسی ادمین اجرا کند.</td>
     <td>قبل از تفویض، برنامه را در <code>Program&nbsp;Files</code> (فقط-ادمین) قرار دهید.</td>
+  </tr>
+</table>
+
+<h3>۷. پیام‌های کنسول ادمین (نوار پایین پنجره)</h3>
+<p>کنسول ادمین این پیام‌ها را در نوار پایینِ پنجره نشان می‌دهد. متنِ <b>قرمز</b> یعنی کار
+   متوقف شده و قبل از ادامه باید رفع شود.</p>
+<table>
+  <tr><th>پیام</th><th>علت</th><th>راه‌حل</th></tr>
+  <tr>
+    <td>«Choose a valid executable (.exe).»</td>
+    <td>کادر <b>Executable</b> خالی است، یا مسیرِ آن کوتیشن دارد
+        (<code>"C:\…\app.exe"</code>)، یا شمارهٔ آیکن در انتها دارد (<code>,0</code>)، یا
+        <code>%variable%</code> بازنشده دارد، یا فایل روی این سیستم نیست. به همین دلیل مسیری که
+        از رجیستری یا از <i>Target</i> یک شورتکات کپی شده باشد رد می‌شود، هرچند فایل وجود دارد.</td>
+    <td>برنامه را از لیست انتخاب کنید یا روی <b>Browse…</b> بزنید و فایل <code>.exe</code> واقعی
+        را انتخاب کنید. کوتیشن‌های دورِ مسیر، شمارهٔ آیکن <code>,0</code> و متغیرهای
+        <code>%environment%</code> حالا به‌طور خودکار پاک می‌شوند.</td>
+  </tr>
+  <tr>
+    <td>«No executable auto-detected for '…'. Use Browse… to pick the .exe.»</td>
+    <td>ورودیِ رجیستریِ آن نرم‌افزار مسیر اجراییِ قابل‌استفاده‌ای ندارد
+        (نه <code>DisplayIcon</code> و نه <code>InstallLocation</code>).</td>
+    <td>روی <b>Browse…</b> بزنید و فایل <code>.exe</code> واقعیِ برنامه را انتخاب کنید.</td>
+  </tr>
+  <tr>
+    <td>«Select a target Windows user.»</td>
+    <td>هیچ کاربری در لیست <b>Target Windows user</b> انتخاب نشده است.</td>
+    <td>قبل از <b>Create delegation</b> روی یک ردیفِ کاربر کلیک کنید (مثلاً حساب Standard دانشجو).</td>
+  </tr>
+  <tr>
+    <td>«Account mode needs an administrator account and password.»</td>
+    <td>حالت <b>Run as: Admin account</b> انتخاب شده ولی کادر Account یا Password خالی است.</td>
+    <td>هر دو کادر را پر کنید، یا به حالت <b>SYSTEM (no password)</b> سوییچ کنید.</td>
+  </tr>
+  <tr>
+    <td>«Select a delegation to remove.»</td>
+    <td>در تب <b>Existing delegations</b> روی <b>Remove selected</b> زده شده بدون انتخابِ ردیف.</td>
+    <td>اول یک ردیفِ تفویض را انتخاب و سپس <b>Remove selected</b> را بزنید.</td>
+  </tr>
+  <tr>
+    <td>«Load error: …» یا «List error: …»</td>
+    <td>کنسول نتوانست نرم‌افزارهای نصب‌شده، کاربران یا تسک‌های موجود را بخواند — معمولاً چون
+        elevated نیست، یا دسترسی به رجیستری / Task Scheduler رد شده است.</td>
+    <td><b>Task Delegator (Administrator)</b> را اجرا و UAC را با حساب ادمین تأیید کنید.</td>
+  </tr>
+  <tr>
+    <td>«Failed: …» یا «Remove failed: …»</td>
+    <td>ساخت یا حذفِ تسکِ زمان‌بندی‌شده شکست خورد — elevated نبودن، حساب/رمزِ ادمینِ اشتباه،
+        یا متوقف‌بودنِ سرویس <b>Task Scheduler</b>.</td>
+    <td>برنامه را elevated اجرا کنید، حساب/رمز را دوباره بررسی کنید، و مطمئن شوید سرویس
+        <b>Task Scheduler</b> در حال اجراست. جزئیات در
+        <code>C:\ProgramData\AppDelegation\audit.log</code> هست.</td>
   </tr>
 </table>
 </div>

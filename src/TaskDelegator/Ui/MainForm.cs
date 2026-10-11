@@ -329,8 +329,9 @@ public sealed class MainForm : Form
     {
         try
         {
-            string exe = _exe.Text.Trim();
+            string exe = NormalizeExePath(_exe.Text);
             if (exe.Length == 0 || !File.Exists(exe)) { SetStatus("Choose a valid executable (.exe).", true); return; }
+            _exe.Text = exe; // reflect the cleaned path (surrounding quotes / ,0 index / %vars% removed)
             if (_users.SelectedItems.Count == 0 || _users.SelectedItems[0].Tag is not LocalUserInfo user)
             { SetStatus("Select a target Windows user.", true); return; }
 
@@ -407,6 +408,32 @@ public sealed class MainForm : Form
             SetStatus($"Removed '{task}'.");
         }
         catch (Exception ex) { SetStatus("Remove failed: " + ex.Message, true); }
+    }
+
+    // The Executable box may receive a path copied from the registry, a shortcut's
+    // "Target", or an UninstallString: those wrap a path containing spaces in quotes
+    // ("C:\...\app.exe"), may append an icon index (",0"), and may use %ProgramFiles%
+    // style variables. File.Exists rejects all of those, so normalize before validating.
+    private static string NormalizeExePath(string raw)
+    {
+        string s = raw.Trim();
+        if (s.Length == 0) return s;
+
+        if (s.StartsWith("\"", StringComparison.Ordinal))
+        {
+            int end = s.IndexOf('"', 1);
+            if (end > 1) s = s.Substring(1, end - 1);   // text inside the first quote pair
+        }
+        else
+        {
+            int comma = s.LastIndexOf(',');             // strip a trailing icon index: "...app.exe,0"
+            if (comma > 0 && int.TryParse(s.Substring(comma + 1).Trim(), out _))
+                s = s.Substring(0, comma);
+        }
+
+        s = s.Trim();
+        try { s = Environment.ExpandEnvironmentVariables(s); } catch { /* leave as-is */ }
+        return s.Trim();
     }
 
     private void SetStatus(string message, bool error = false)
