@@ -67,10 +67,12 @@ The launcher is **run-only**: no uninstall, remove, or settings action.
 | Shortcut landed on the **Public** desktop | That user has never signed in (no profile yet). | Have them sign in once, or leave it on Public. |
 | Warning: "executable is not under Program Files / Windows" | The delegated `.exe` is user-writable — it could be swapped for other code and run elevated. | Move the app to `Program Files` (admin-only) before delegating. |
 
-### 7. Administrator console messages (bottom status bar)
+### 7. Messages the program shows (and what they mean)
 
-The administrator console writes these in the bar at the bottom of its window. **Red** text
-means it stopped and needs a fix before you can continue.
+This lists **every** message the program can display: the **red** text in the bottom status
+bar, and the **pop-up dialog boxes**. Red text means the action stopped and needs a fix.
+
+**7.1 Administrator console — red text in the bottom status bar**
 
 | Message | Cause | Fix |
 |---|---|---|
@@ -79,8 +81,29 @@ means it stopped and needs a fix before you can continue.
 | "Select a target Windows user." | No user is selected in the **Target Windows user** list. | Click a user row (e.g. the Standard student account) before **Create delegation**. |
 | "Account mode needs an administrator account and password." | **Run as: Admin account** is selected, but the Account or Password field is empty. | Fill both fields, or switch to **SYSTEM (no password)**. |
 | "Select a delegation to remove." | **Remove selected** was clicked on the **Existing delegations** tab with no row selected. | Select a delegation row first, then **Remove selected**. |
+| "Creating delegation…" | Informational (not red): the delegation is being created. | Wait a moment; a success or error message follows. |
 | "Load error: …" / "List error: …" | The console couldn't read installed software, users, or existing tasks — usually it isn't elevated, or registry / Task Scheduler access was denied. | Run **Task Delegator (Administrator)** and approve UAC as an administrator. |
-| "Failed: …" / "Remove failed: …" | Creating or removing the scheduled task failed — not elevated, a wrong admin account/password, or the **Task Scheduler** service is stopped. | Run elevated, re-check the account/password, and ensure the **Task Scheduler** service is running. Details are in `C:\ProgramData\AppDelegation\audit.log`. |
+| "Failed: …" / "Remove failed: …" | Creating or removing the scheduled task failed — not elevated, the **Task Scheduler** service is stopped, or (Admin-account mode) a wrong account/password. The exact reason is appended (e.g. "Could not register the scheduled task…"). | Run elevated, ensure the **Task Scheduler** service is running, re-check the account/password, then retry. Details are in `C:\ProgramData\AppDelegation\audit.log`. |
+
+**7.2 Administrator console — pop-up dialog boxes**
+
+| Dialog (title: "Privileged App Delegation…") | When it appears | What to do |
+|---|---|---|
+| ⚠️ **Warning** — "The selected executable is not under Program Files or Windows… Continue anyway?" (**Yes** / **No**) | The chosen `.exe` sits in a folder a standard user can write to, so they could swap it and run their own code elevated. | Prefer **No**, move the app into `Program Files` (admin-only), and re-select it. Choose **Yes** only if you fully trust the location. |
+| ✔️ **Information** — "Delegation created. User '…' can now launch '…' with administrator rights…" | A delegation was created successfully. | Nothing to fix — this confirms success. The program appears on the user's desktop and in their **Allowed Programs** launcher. |
+| ❌ **Error** — the exact failure text (e.g. "Could not register the scheduled task…"; older builds showed "Object reference not set to an instance of an object") | Creating the delegation failed. "Object reference…" was a bug creating the *first* delegation (the Task Scheduler folder didn't exist yet) — fixed in this version. | Update to this version. Otherwise: run as administrator, ensure the **Task Scheduler** service is running, re-check any account/password, and retry. |
+| ❓ **Question** — "Remove delegation '…' and its desktop shortcut(s)?" (**Yes** / **No**) | You clicked **Remove selected** on the **Existing delegations** tab. | **Yes** deletes the task and its shortcut(s); **No** cancels. |
+| ⚠️ **Warning** — "Administrator rights are required to configure delegations." | The admin console was launched but the UAC prompt was declined, or the account is not an administrator. | Launch **Task Delegator (Administrator)** again and approve UAC with an administrator account. |
+
+**7.3 "Allowed Programs" launcher (student) — bottom status bar**
+
+| Message | Cause | Fix |
+|---|---|---|
+| "No programs have been assigned to you yet." | Informational: no delegation has been created for this user. | Not an error — an administrator assigns programs from the admin console. |
+| "Select a program first." | **Run** was clicked with no program selected. | Click a program tile first, then **Run** (or just double-click the tile). |
+| "Could not load programs: …" | The list of assigned programs couldn't be read (the menu folder is unreadable). | Ask an administrator to re-create the delegation / re-run setup; check `audit.log`. |
+| "Could not start '…': …" | The delegated task couldn't be triggered — the task or app was removed, or there's no interactive session. | Make sure you're signed in and the app still exists; an administrator can read `C:\ProgramData\AppDelegation\launcher.log`. |
+| "Administrator mode was cancelled (administrator rights required)." | The student clicked **Administrator…** but declined the UAC prompt, or is not an administrator. | Only administrators can open the console; approve UAC with an administrator account. |
 
 ---
 
@@ -137,10 +160,12 @@ means it stopped and needs a fix before you can continue.
 | شورتکات روی دسکتاپ **Public** ساخته شد | آن کاربر هرگز لاگین نکرده (هنوز پروفایل ندارد). | یک‌بار لاگین کند، یا روی Public بماند. |
 | هشدار: «executable is not under Program Files / Windows» | فایل `.exe` تفویض‌شده قابل‌نوشتن توسط کاربر است — می‌تواند جایگزین و با دسترسی ادمین اجرا شود. | قبل از تفویض، برنامه را در `Program Files` (فقط-ادمین) بگذارید. |
 
-### ۷. پیام‌های کنسول ادمین (نوار پایین پنجره)
+### ۷. پیام‌هایی که برنامه نشان می‌دهد (و معنی‌شان)
 
-کنسول ادمین این پیام‌ها را در نوار پایینِ پنجره نشان می‌دهد. متنِ **قرمز** یعنی کار متوقف
-شده و قبل از ادامه باید رفع شود.
+این بخش **همهٔ** پیام‌هایی را که برنامه ممکن است نشان دهد فهرست می‌کند: متنِ **قرمز** در نوار
+پایین، و **پنجره‌های pop-up**. متنِ قرمز یعنی کار متوقف شده و باید رفع شود.
+
+**۷٫۱ کنسول ادمین — متنِ قرمز در نوار پایین**
 
 | پیام | علت | راه‌حل |
 |---|---|---|
@@ -149,5 +174,38 @@ means it stopped and needs a fix before you can continue.
 | «Select a target Windows user.» | هیچ کاربری در لیست **Target Windows user** انتخاب نشده است. | قبل از **Create delegation** روی یک ردیفِ کاربر کلیک کنید (مثلاً حساب Standard دانشجو). |
 | «Account mode needs an administrator account and password.» | حالت **Run as: Admin account** انتخاب شده ولی کادر Account یا Password خالی است. | هر دو کادر را پر کنید، یا به حالت **SYSTEM (no password)** سوییچ کنید. |
 | «Select a delegation to remove.» | در تب **Existing delegations** روی **Remove selected** زده شده بدون انتخابِ ردیف. | اول یک ردیفِ تفویض را انتخاب و سپس **Remove selected** را بزنید. |
+| «Creating delegation…» | اطلاع‌رسانی (قرمز نیست): تفویض در حال ساخته‌شدن است. | چند لحظه صبر کنید؛ پیام موفقیت یا خطا پس از آن می‌آید. |
 | «Load error: …» / «List error: …» | کنسول نتوانست نرم‌افزارهای نصب‌شده، کاربران یا تسک‌های موجود را بخواند — معمولاً چون elevated نیست، یا دسترسی به رجیستری / Task Scheduler رد شده است. | **Task Delegator (Administrator)** را اجرا و UAC را با حساب ادمین تأیید کنید. |
-| «Failed: …» / «Remove failed: …» | ساخت یا حذفِ تسکِ زمان‌بندی‌شده شکست خورد — elevated نبودن، حساب/رمزِ ادمینِ اشتباه، یا متوقف‌بودنِ سرویس **Task Scheduler**. | برنامه را elevated اجرا کنید، حساب/رمز را دوباره بررسی کنید، و مطمئن شوید سرویس **Task Scheduler** در حال اجراست. جزئیات در `C:\ProgramData\AppDelegation\audit.log` هست. |
+| «Failed: …» / «Remove failed: …» | ساخت یا حذفِ تسکِ زمان‌بندی‌شده شکست خورد — elevated نبودن، متوقف‌بودنِ سرویس **Task Scheduler**، یا (حالت Admin account) حساب/رمزِ اشتباه. علت دقیق به پیام اضافه می‌شود (مثلاً «Could not register the scheduled task…»). | برنامه را elevated اجرا کنید، از اجرای سرویس **Task Scheduler** مطمئن شوید، حساب/رمز را بررسی و دوباره تلاش کنید. جزئیات در `C:\ProgramData\AppDelegation\audit.log` هست. |
+
+**۷٫۲ کنسول ادمین — پنجره‌های pop-up**
+
+| پنجره (عنوان: «Privileged App Delegation…») | چه زمانی می‌آید | چه کنیم |
+|---|---|---|
+| ⚠️ **Warning** — «The selected executable is not under Program Files or Windows… Continue anyway?» (**Yes** / **No**) | فایل `.exe` انتخابی در مسیری است که کاربر عادی اجازهٔ نوشتن دارد؛ می‌تواند آن را عوض و کدِ خودش را با دسترسی ادمین اجرا کند. | ترجیحاً **No** بزنید، برنامه را به `Program Files` (فقط-ادمین) منتقل و دوباره انتخاب کنید. فقط اگر کاملاً اعتماد دارید **Yes** بزنید. |
+| ✔️ **Information** — «Delegation created. User '…' can now launch '…' with administrator rights…» | تفویض با موفقیت ساخته شد. | کاری لازم نیست — یعنی موفقیت. برنامه روی دسکتاپ کاربر و در لانچرِ **Allowed Programs** می‌آید. |
+| ❌ **Error** — متنِ دقیقِ خطا (مثلاً «Could not register the scheduled task…»؛ در نسخه‌های قدیمی «Object reference not set to an instance of an object») | ساختِ تفویض شکست خورد. «Object reference…» یک باگ هنگام ساختِ *اولین* تفویض بود (پوشهٔ Task Scheduler هنوز نبود) — در این نسخه رفع شد. | به این نسخه به‌روزرسانی کنید. وگرنه: به‌عنوان ادمین اجرا کنید، از اجرای سرویس **Task Scheduler** مطمئن شوید، حساب/رمز را بررسی و دوباره تلاش کنید. |
+| ❓ **Question** — «Remove delegation '…' and its desktop shortcut(s)?» (**Yes** / **No**) | روی **Remove selected** در تب **Existing delegations** زدید. | **Yes** تسک و شورتکات(ها) را حذف می‌کند؛ **No** لغو می‌کند. |
+| ⚠️ **Warning** — «Administrator rights are required to configure delegations.» | کنسول ادمین باز شد ولی پنجرهٔ UAC رد شد، یا حساب ادمین نیست. | دوباره **Task Delegator (Administrator)** را اجرا و UAC را با حساب ادمین تأیید کنید. |
+
+**۷٫۳ لانچرِ «Allowed Programs» (دانشجو) — نوار پایین**
+
+| پیام | علت | راه‌حل |
+|---|---|---|
+| «No programs have been assigned to you yet.» | اطلاع‌رسانی: هنوز هیچ تفویضی برای این کاربر ساخته نشده است. | خطا نیست — ادمین از کنسول ادمین برنامه‌ها را تخصیص می‌دهد. |
+| «Select a program first.» | روی **Run** زده شده بدون انتخابِ برنامه. | اول روی کاشیِ یک برنامه کلیک و سپس **Run** را بزنید (یا دابل‌کلیک کنید). |
+| «Could not load programs: …» | فهرستِ برنامه‌های تخصیص‌یافته خوانده نشد (پوشهٔ منو قابل‌خواندن نیست). | از ادمین بخواهید تفویض را دوباره بسازد / setup را دوباره اجرا کند؛ `audit.log` را ببینید. |
+| «Could not start '…': …» | تسکِ تفویض‌شده اجرا نشد — تسک یا برنامه حذف شده، یا سشنِ تعاملی وجود ندارد. | مطمئن شوید لاگین کرده‌اید و برنامه هنوز هست؛ ادمین می‌تواند `C:\ProgramData\AppDelegation\launcher.log` را بخواند. |
+| «Administrator mode was cancelled (administrator rights required).» | دانشجو روی **Administrator…** زد ولی UAC را رد کرد، یا ادمین نیست. | فقط ادمین‌ها می‌توانند کنسول را باز کنند؛ UAC را با حساب ادمین تأیید کنید. |
+
+---
+
+### Author / سازنده
+
+**Created by Kamran Najafi — ساختهٔ کامران نجفی**
+
+- GitHub: https://github.com/KamranNajafi
+- Repository / مخزن: https://github.com/KamranNajafi/Task-Scheduler-Windows
+
+نام سازنده و این لینک‌ها داخل خودِ برنامه هم نمایش داده می‌شوند (هم در کنسول ادمین و هم در
+لانچرِ **Allowed Programs**).

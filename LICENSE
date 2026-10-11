@@ -1,21 +1,107 @@
-MIT License
-
+Task Delegator — Source-Available License (Non-Commercial, Attribution-Required)
 Copyright (c) 2026 Kamran Najafi
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Author:  Kamran Najafi
+GitHub:  https://github.com/KamranNajafi
+Project: https://github.com/KamranNajafi/Task-Scheduler-Windows
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This is a custom license. It is NOT an OSI-approved open-source license and it is
+NOT the MIT license. Please read it before using, copying, or modifying this work.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+================================================================================
+ENGLISH
+================================================================================
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and its source code (the "Software"), to use, run, copy, study,
+modify, and distribute the Software (including modified or derivative versions),
+subject to ALL of the conditions below.
+
+1. FREE OF CHARGE.
+   The Software — and any modified, derivative, or redistributed version of it —
+   must always be provided free of charge. It must remain free to obtain and to
+   use for its users.
+
+2. NO SALE WITHOUT PERMISSION.
+   You may NOT sell the Software or any derivative of it, may NOT charge a fee
+   for it, and may NOT include it in a paid product, paid service, paywall, or
+   any other for-profit offering, WITHOUT the prior written permission of the
+   author, Kamran Najafi. To request permission, contact the author through the
+   GitHub profile above.
+
+3. ATTRIBUTION — IN YOUR REPOSITORY.
+   Any distribution or derivative work must clearly and visibly credit the
+   original author and link back to the original project. At minimum, the README
+   (or equivalent front page) of your repository must contain:
+       Based on "Task Delegator" by Kamran Najafi
+       https://github.com/KamranNajafi
+       https://github.com/KamranNajafi/Task-Scheduler-Windows
+
+4. ATTRIBUTION — IN THE PROGRAM.
+   The original author's name ("Kamran Najafi") and a link to the original
+   project must remain visible inside the application's user interface (for
+   example, in a credits or "About" line, as shipped in this project). You may
+   add your own name as a contributor, but you may NOT remove, hide, or obscure
+   the original author's credit.
+
+5. KEEP THIS LICENSE.
+   This license text and the copyright notice above must be included with every
+   copy or substantial portion of the Software, including derivative works.
+
+6. NO WARRANTY.
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT
+   OF, OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+Any use that is not permitted above — in particular, selling the Software or
+removing the author's credit — requires the prior written permission of the
+author, Kamran Najafi.
+
+================================================================================
+فارسی (ترجمهٔ غیررسمی — در صورت اختلاف، متن انگلیسی معتبر است)
+================================================================================
+
+این یک لایسنس سفارشی است؛ لایسنسِ MIT نیست و لایسنس متن‌باز استاندارد (OSI) هم
+نیست. پیش از استفاده، کپی یا تغییر این اثر آن را بخوانید.
+
+به هر شخصی که نسخه‌ای از این نرم‌افزار و کد منبع آن («نرم‌افزار») را به دست
+می‌آورد، اجازه داده می‌شود که آن را به‌صورت رایگان استفاده، اجرا، کپی، مطالعه،
+تغییر و توزیع کند (از جمله نسخه‌های تغییریافته یا مشتق)، مشروط به رعایت همهٔ
+شرایط زیر:
+
+۱. رایگان بودن.
+   این نرم‌افزار — و هر نسخهٔ تغییریافته، مشتق یا بازتوزیع‌شدهٔ آن — باید همیشه
+   رایگان ارائه شود و دریافت و استفادهٔ آن برای کاربران رایگان بماند.
+
+۲. ممنوعیت فروش بدون اجازه.
+   فروش این نرم‌افزار یا هر مشتق آن، دریافت هرگونه هزینه بابت آن، یا قراردادن آن
+   در یک محصول/سرویس پولی یا پشت دیوار پرداخت، بدون اجازهٔ کتبیِ قبلیِ نویسنده
+   (کامران نجفی) مجاز نیست. برای کسب اجازه از طریق پروفایل گیت‌هاب بالا با
+   نویسنده تماس بگیرید.
+
+۳. ذکر منبع — در مخزن شما.
+   هر توزیع یا کار مشتق باید به‌روشنی نویسندهٔ اصلی را ذکر کند و به پروژهٔ اصلی
+   لینک بدهد. دست‌کم باید در README (یا صفحهٔ اصلیِ معادل) مخزن شما این موارد
+   بیاید:
+       برگرفته از «Task Delegator» اثر کامران نجفی
+       https://github.com/KamranNajafi
+       https://github.com/KamranNajafi/Task-Scheduler-Windows
+
+۴. ذکر منبع — داخل برنامه.
+   نام نویسندهٔ اصلی («Kamran Najafi / کامران نجفی») و لینک پروژهٔ اصلی باید در
+   رابط کاربریِ برنامه قابل‌مشاهده باقی بماند (مثلاً در خط اعتبارها/About، همان‌طور
+   که در این پروژه ارائه شده است). می‌توانید نام خودتان را به‌عنوان مشارکت‌کننده
+   اضافه کنید، ولی حذف، پنهان‌کردن یا کم‌رنگ‌کردنِ اعتبارِ نویسندهٔ اصلی مجاز نیست.
+
+۵. حفظ این لایسنس.
+   متن این لایسنس و اعلان حق‌تکثیرِ بالا باید همراه هر کپی یا بخش عمده‌ای از
+   نرم‌افزار، از جمله کارهای مشتق، گنجانده شود.
+
+۶. بدون ضمانت.
+   نرم‌افزار «همان‌گونه که هست» ارائه می‌شود، بدون هیچ ضمانتی. نویسنده در قبال
+   هیچ ادعا یا خسارتی که از استفادهٔ نرم‌افزار ناشی شود مسئول نیست.
+
+هر استفاده‌ای که بالا مجاز نشده باشد — به‌ویژه فروشِ نرم‌افزار یا حذفِ اعتبارِ
+نویسنده — نیازمند اجازهٔ کتبیِ قبلیِ نویسنده، کامران نجفی، است.

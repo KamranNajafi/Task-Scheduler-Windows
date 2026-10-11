@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using TaskDelegator.Models;
 using TaskDelegator.Services;
@@ -44,6 +45,7 @@ public sealed class MainForm : Form
         Font = new Font("Segoe UI", 9f);
 
         Controls.Add(BuildTabs());
+        Controls.Add(BuildCredits());
         Controls.Add(BuildStatusBar());
         Controls.Add(BuildHeader());
 
@@ -88,6 +90,38 @@ public sealed class MainForm : Form
         var bar = new Panel { Dock = DockStyle.Bottom, Height = 26, BackColor = SystemColors.ControlLight };
         bar.Controls.Add(_status);
         return bar;
+    }
+
+    // Creator credit + links to the author's GitHub and the project repository.
+    private Control BuildCredits()
+    {
+        var bar = new Panel { Dock = DockStyle.Bottom, Height = 26, BackColor = SystemColors.ControlLightLight };
+        var flow = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(8, 4, 8, 0)
+        };
+        flow.Controls.Add(new Label { Text = "Created by Kamran Najafi —", AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(0, 1, 2, 0) });
+        flow.Controls.Add(NewLink("github.com/KamranNajafi", "https://github.com/KamranNajafi"));
+        flow.Controls.Add(new Label { Text = "·", AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(3, 1, 3, 0) });
+        flow.Controls.Add(NewLink("Project repository", "https://github.com/KamranNajafi/Task-Scheduler-Windows"));
+        bar.Controls.Add(flow);
+        return bar;
+    }
+
+    private static LinkLabel NewLink(string text, string url)
+    {
+        var link = new LinkLabel { Text = text, AutoSize = true, Margin = new Padding(0, 1, 0, 0), LinkColor = Accent };
+        link.LinkClicked += (_, _) => OpenUrl(url);
+        return link;
+    }
+
+    private static void OpenUrl(string url)
+    {
+        try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch { /* ignore — opening a browser is best-effort */ }
     }
 
     private Control BuildTabs()

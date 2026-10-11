@@ -110,7 +110,13 @@ public static class DelegationManager
         File.WriteAllText(Path.Combine(Paths.DelegationsDir, taskName + ".json"),
             JsonSerializer.Serialize(cfg, JsonOpts), new UTF8Encoding(false));
 
-        RegisterTask(taskName, stableExe, user.Sid, cfg.FriendlyName, user.Name);
+        try { RegisterTask(taskName, stableExe, user.Sid, cfg.FriendlyName, user.Name); }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "Could not register the scheduled task. Make sure you are running as administrator " +
+                "and the Task Scheduler service is running. Details: " + ex.Message, ex);
+        }
         WriteMenuEntry(cfg, exe);
 
         AuditLog.Write($"CREATED task={taskName} app='{exe}' args='{args}' mode={mode} runas='{(mode == RunAsMode.Account ? accountUser : "SYSTEM")}' foruser={user.Name} by={cfg.CreatedBy}");
@@ -119,22 +125,33 @@ public static class DelegationManager
         string note = "";
         if (makeShortcut || makeLauncherShortcut)
         {
-            string? desktop = GetUserDesktop(user.Sid);
-            if (string.IsNullOrEmpty(desktop))
+            try
             {
-                desktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
-                note = " (user profile not found; shortcut(s) placed on the Public desktop)";
+                string? desktop = GetUserDesktop(user.Sid);
+                if (string.IsNullOrEmpty(desktop))
+                {
+                    desktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
+                    note = " (user profile not found; shortcut(s) placed on the Public desktop)";
+                }
+                if (makeShortcut)
+                {
+                    shortcut = CreateShortcut(taskName, cfg.FriendlyName, exe, desktop);
+                    AuditLog.Write($"SHORTCUT {shortcut}");
+                }
+                if (makeLauncherShortcut)
+                {
+                    var launcher = CreateLauncherShortcut(desktop);
+                    AuditLog.Write($"LAUNCHER_SHORTCUT {launcher}");
+                    shortcut ??= launcher;
+                }
             }
-            if (makeShortcut)
+            catch (Exception ex)
             {
-                shortcut = CreateShortcut(taskName, cfg.FriendlyName, exe, desktop);
-                AuditLog.Write($"SHORTCUT {shortcut}");
-            }
-            if (makeLauncherShortcut)
-            {
-                var launcher = CreateLauncherShortcut(desktop);
-                AuditLog.Write($"LAUNCHER_SHORTCUT {launcher}");
-                shortcut ??= launcher;
+                // The delegation (the task) already exists; a desktop shortcut is only a
+                // convenience, so never fail the whole operation because of it.
+                AuditLog.Write("shortcut creation failed: " + ex.Message);
+                note += " (note: the scheduled task was created, but a desktop shortcut could not be made — "
+                      + ex.Message + ". The user can still run it from the 'Allowed Programs' launcher.)";
             }
         }
 
@@ -197,9 +214,10 @@ public static class DelegationManager
         // The action runs OUR launcher as SYSTEM; it spawns the real app into the user's session.
         td.Actions.Add(new ExecAction(stableExe, $"--launch \"{taskName}\"", null));
 
-        TaskFolder folder;
-        try { folder = ts.GetFolder("\\" + Paths.TaskFolder); }
-        catch { folder = ts.RootFolder.CreateFolder(Paths.TaskFolder); }
+        // NOTE: Microsoft.Win32.TaskScheduler's GetFolder returns NULL (it does not
+        // throw) for a missing folder, so the first-ever delegation used to dereference
+        // null here ("Object reference not set to an instance of an object").
+        TaskFolder folder = GetOrCreateFolder(ts);
 
         // SDDL: Administrators + SYSTEM full; the delegated user gets read + execute
         // (enough to RUN this one task, nothing more).
@@ -209,44 +227,76 @@ public static class DelegationManager
             "SYSTEM", null, TaskLogonType.ServiceAccount, sddl);
     }
 
+    // Microsoft.Win32.TaskScheduler.GetFolder returns null (not an exception) for a
+    // missing folder; these helpers make that explicit so callers never deref null.
+    private static TaskFolder? TryGetFolder(TaskService ts)
+    {
+        try { return ts.GetFolder("\\" + Paths.TaskFolder); }
+        catch { return null; }
+    }
+
+    private static TaskFolder GetOrCreateFolder(TaskService ts)
+    {
+        var f = TryGetFolder(ts);
+        if (f is not null) return f;
+        try { return ts.RootFolder.CreateFolder(Paths.TaskFolder); }
+        catch { /* created concurrently, or lost a race — fall through */ }
+        return TryGetFolder(ts) ?? throw new InvalidOperationException(
+            "Could not open or create the Task Scheduler folder \\" + Paths.TaskFolder +
+            ". Make sure you are running as administrator and the Task Scheduler service is running.");
+    }
+
+    private static string SafeLastRun(Microsoft.Win32.TaskScheduler.Task t)
+    {
+        try
+        {
+            var lr = t.LastRunTime;
+            return lr.Year < 2000 ? "never" : lr.ToString("yyyy-MM-dd HH:mm");
+        }
+        catch { return "never"; }
+    }
+
     // -------- list / remove --------
 
     public static List<DelegationRow> List()
     {
         var rows = new List<DelegationRow>();
         using var ts = new TaskService();
-        TaskFolder folder;
-        try { folder = ts.GetFolder("\\" + Paths.TaskFolder); }
-        catch { return rows; }
+        var folder = TryGetFolder(ts);
+        if (folder is null) return rows;   // no delegations folder yet
 
         foreach (var t in folder.Tasks)
         {
-            var row = new DelegationRow
+            try
             {
-                TaskName = t.Name,
-                LastRun = t.LastRunTime.Year < 2000 ? "never" : t.LastRunTime.ToString("yyyy-MM-dd HH:mm")
-            };
-
-            var cfgPath = Path.Combine(Paths.DelegationsDir, t.Name + ".json");
-            if (File.Exists(cfgPath))
-            {
-                try
+                var row = new DelegationRow
                 {
-                    var c = JsonSerializer.Deserialize<DelegationConfig>(File.ReadAllText(cfgPath));
-                    if (c is not null)
-                    {
-                        row.FriendlyName = c.FriendlyName;
-                        row.App = c.AppPath;
-                        row.RunAs = c.Mode == RunAsMode.Account ? (c.AccountUser ?? "account") : "SYSTEM";
-                        row.TargetUser = c.TargetUser;
-                    }
-                }
-                catch { /* ignore unreadable descriptor */ }
-            }
-            if (string.IsNullOrEmpty(row.App) && t.Definition.Actions.FirstOrDefault() is ExecAction ea)
-                row.App = ea.Path;
+                    TaskName = t.Name,
+                    LastRun = SafeLastRun(t)
+                };
 
-            rows.Add(row);
+                var cfgPath = Path.Combine(Paths.DelegationsDir, t.Name + ".json");
+                if (File.Exists(cfgPath))
+                {
+                    try
+                    {
+                        var c = JsonSerializer.Deserialize<DelegationConfig>(File.ReadAllText(cfgPath));
+                        if (c is not null)
+                        {
+                            row.FriendlyName = c.FriendlyName;
+                            row.App = c.AppPath;
+                            row.RunAs = c.Mode == RunAsMode.Account ? (c.AccountUser ?? "account") : "SYSTEM";
+                            row.TargetUser = c.TargetUser;
+                        }
+                    }
+                    catch { /* ignore unreadable descriptor */ }
+                }
+                if (string.IsNullOrEmpty(row.App) && t.Definition?.Actions?.FirstOrDefault() is ExecAction ea)
+                    row.App = ea.Path;
+
+                rows.Add(row);
+            }
+            catch { /* skip a task we cannot read */ }
         }
         return rows;
     }
@@ -255,11 +305,7 @@ public static class DelegationManager
     {
         using (var ts = new TaskService())
         {
-            try
-            {
-                var folder = ts.GetFolder("\\" + Paths.TaskFolder);
-                folder.DeleteTask(taskName, false);
-            }
+            try { TryGetFolder(ts)?.DeleteTask(taskName, false); }
             catch { /* already gone */ }
         }
 

@@ -216,6 +216,56 @@ child processes — a browser, Office, `cmd`, PowerShell, a file manager, anythi
 a "Run…"/"Open with…" feature — effectively hands the user broader elevation. Choose
 narrowly and review the audit log periodically.
 
+## Author
+
+**Created by Kamran Najafi.**
+
+- GitHub: [github.com/KamranNajafi](https://github.com/KamranNajafi)
+- Project repository: [github.com/KamranNajafi/Task-Scheduler-Windows](https://github.com/KamranNajafi/Task-Scheduler-Windows)
+
+The author's name and these links are also shown inside the application itself —
+in both the **administrator console** and the run-only **Allowed Programs**
+launcher.
+
 ## License
 
-[MIT](LICENSE)
+This project uses a **custom source-available license** — it is **not** MIT and
+**not** an OSI open-source license. See [`LICENSE`](LICENSE) for the full text
+(English + Persian). In short:
+
+- ✅ **Free to use and to develop.** You may use, run, study, modify, and share
+  it — and build on it — **free of charge**. Any version you distribute must also
+  stay free.
+- 🚫 **No selling without permission.** You may **not** sell it, charge for it, or
+  put it behind a paywall / in a paid product without the **prior written
+  permission** of the author, Kamran Najafi.
+- 📝 **You must credit the source — in two places:**
+  1. **In your repository** — your README must state it is based on *Task
+     Delegator* by Kamran Najafi and link to this project.
+  2. **In the program** — the author's name (**Kamran Najafi**) and the project
+     link must stay visible in the app's user interface. You may add your own
+     name as a contributor, but you may not remove the original credit.
+
+For anything beyond this (for example, selling the software), contact the author
+via the GitHub profile above.
+
+---
+
+## لایسنس (خلاصهٔ فارسی)
+
+این پروژه از یک **لایسنس سفارشی** استفاده می‌کند (نه MIT و نه لایسنس متن‌باز
+استاندارد). متن کامل در فایل [`LICENSE`](LICENSE) آمده است. به‌طور خلاصه:
+
+- ✅ **رایگان برای استفاده و توسعه.** هر کسی می‌تواند آن را رایگان استفاده کند،
+  تغییر دهد و توسعه بدهد؛ هر نسخه‌ای هم که توزیع می‌کند باید **رایگان** بماند.
+- 🚫 **فروش بدون اجازه ممنوع.** فروش برنامه یا هر مشتق آن، یا دریافت هزینه بابت
+  آن، فقط با **اجازهٔ کتبیِ قبلیِ** نویسنده (کامران نجفی) مجاز است.
+- 📝 **ذکر منبع الزامی است — در دو جا:**
+  ۱. **در مخزن شما:** در README خود بنویسید که برگرفته از *Task Delegator* اثر
+     کامران نجفی است و به این پروژه لینک دهید.
+  ۲. **داخل برنامه:** نام نویسنده (**کامران نجفی / Kamran Najafi**) و لینک پروژه
+     باید در رابط کاربریِ برنامه قابل‌مشاهده بماند. افزودن نام خودتان به‌عنوان
+     مشارکت‌کننده مجاز است، ولی حذف اعتبارِ نویسندهٔ اصلی مجاز نیست.
+
+برای هر استفادهٔ خارج از این موارد (مثلاً فروش برنامه)، از طریق پروفایل گیت‌هابِ
+بالا با نویسنده تماس بگیرید.

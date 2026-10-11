@@ -19,6 +19,7 @@
   h2 { color:var(--accent); font-size:17pt; margin:20pt 0 6pt; padding-bottom:3pt;
        border-bottom:2px solid var(--line); }
   h3 { font-size:13.5pt; margin:14pt 0 4pt; }
+  h4 { font-size:11.5pt; margin:11pt 0 3pt; color:var(--accent); }
   p, li { color:var(--ink); }
   ol, ul { margin:6pt 0 6pt 0; padding-inline-start:22px; }
   li { margin:3pt 0; }
@@ -54,6 +55,8 @@
   <h1>Task Delegator</h1>
   <p class="sub">User Guide &nbsp;•&nbsp; راهنمای کاربر</p>
   <p class="ver">Privileged Application Delegation for Windows</p>
+  <p class="ver">Created by <b>Kamran Najafi</b> &nbsp;•&nbsp; github.com/KamranNajafi<br>
+     github.com/KamranNajafi/Task-Scheduler-Windows</p>
 </div>
 
 <div class="diagram">
@@ -198,9 +201,12 @@
   </tr>
 </table>
 
-<h3>7. Administrator console messages (bottom status bar)</h3>
-<p>The administrator console writes these in the bar at the bottom of its window.
-   <b>Red</b> text means it stopped and needs a fix before you can continue.</p>
+<h3>7. Messages the program shows (and what they mean)</h3>
+<p>This section lists <b>every</b> message the program can display: the <b>red</b> text in
+   the bottom status bar, and the <b>pop-up dialog boxes</b>. Red text means the action
+   stopped and needs a fix before you can continue.</p>
+
+<h4>7.1 Administrator console — red text in the bottom status bar</h4>
 <table>
   <tr><th>Message</th><th>Cause</th><th>Fix</th></tr>
   <tr>
@@ -237,6 +243,11 @@
     <td>Select a delegation row first, then <b>Remove selected</b>.</td>
   </tr>
   <tr>
+    <td>"Creating delegation…"</td>
+    <td>Informational (not red): the delegation is being created.</td>
+    <td>Wait a moment; a success or error message follows.</td>
+  </tr>
+  <tr>
     <td>"Load error: …" or "List error: …"</td>
     <td>The console could not read installed software, users, or existing tasks — usually it
         is not elevated, or registry / Task Scheduler access was denied.</td>
@@ -244,10 +255,87 @@
   </tr>
   <tr>
     <td>"Failed: …" or "Remove failed: …"</td>
-    <td>Creating or removing the scheduled task failed — not elevated, a wrong admin
-        account/password, or the <b>Task Scheduler</b> service is stopped.</td>
-    <td>Run elevated, re-check the account/password, and make sure the <b>Task Scheduler</b>
-        service is running. Details are in <code>C:\ProgramData\AppDelegation\audit.log</code>.</td>
+    <td>Creating or removing the scheduled task failed — not elevated, the <b>Task Scheduler</b>
+        service is stopped, or (Admin-account mode) a wrong account/password. The exact reason
+        is appended (e.g. "Could not register the scheduled task…").</td>
+    <td>Run elevated, make sure the <b>Task Scheduler</b> service is running, re-check the
+        account/password, then retry. Details are in
+        <code>C:\ProgramData\AppDelegation\audit.log</code>.</td>
+  </tr>
+</table>
+
+<h4>7.2 Administrator console — pop-up dialog boxes</h4>
+<table>
+  <tr><th>Dialog (title: "Privileged App Delegation…")</th><th>When it appears</th><th>What to do</th></tr>
+  <tr>
+    <td>⚠️ <b>Warning</b> — "The selected executable is not under Program Files or Windows…
+        Continue anyway?" (<b>Yes</b> / <b>No</b>)</td>
+    <td>The chosen <code>.exe</code> sits in a folder a standard user can write to, so they
+        could swap it and run their own code elevated.</td>
+    <td>Prefer <b>No</b>, move the app into <code>Program&nbsp;Files</code> (admin-only), and
+        re-select it. Choose <b>Yes</b> only if you fully trust the location.</td>
+  </tr>
+  <tr>
+    <td>✔️ <b>Information</b> — "Delegation created. User '…' can now launch '…' with
+        administrator rights…"</td>
+    <td>A delegation was created successfully.</td>
+    <td>Nothing to fix — this confirms success. The program appears on the user's desktop and
+        in their <b>Allowed Programs</b> launcher.</td>
+  </tr>
+  <tr>
+    <td>❌ <b>Error</b> — the exact failure text (e.g. "Could not register the scheduled
+        task…"; older builds showed "Object reference not set to an instance of an object")</td>
+    <td>Creating the delegation failed. "Object reference…" was a bug creating the <i>first</i>
+        delegation (the Task Scheduler folder did not exist yet) — fixed in this version.</td>
+    <td>Update to this version. Otherwise: run as administrator, ensure the <b>Task Scheduler</b>
+        service is running, re-check any account/password, and retry.</td>
+  </tr>
+  <tr>
+    <td>❓ <b>Question</b> — "Remove delegation '…' and its desktop shortcut(s)?"
+        (<b>Yes</b> / <b>No</b>)</td>
+    <td>You clicked <b>Remove selected</b> on the <b>Existing delegations</b> tab.</td>
+    <td><b>Yes</b> deletes the task and its shortcut(s); <b>No</b> cancels.</td>
+  </tr>
+  <tr>
+    <td>⚠️ <b>Warning</b> — "Administrator rights are required to configure delegations."</td>
+    <td>The admin console was launched but the UAC prompt was declined, or the account is not
+        an administrator.</td>
+    <td>Launch <b>Task Delegator (Administrator)</b> again and approve UAC with an administrator
+        account.</td>
+  </tr>
+</table>
+
+<h4>7.3 "Allowed Programs" launcher (student) — bottom status bar</h4>
+<table>
+  <tr><th>Message</th><th>Cause</th><th>Fix</th></tr>
+  <tr>
+    <td>"No programs have been assigned to you yet."</td>
+    <td>Informational: no delegation has been created for this user.</td>
+    <td>Not an error — an administrator assigns programs from the admin console.</td>
+  </tr>
+  <tr>
+    <td>"Select a program first."</td>
+    <td><b>Run</b> was clicked with no program selected.</td>
+    <td>Click a program tile first, then <b>Run</b> (or just double-click the tile).</td>
+  </tr>
+  <tr>
+    <td>"Could not load programs: …"</td>
+    <td>The list of assigned programs could not be read (the menu folder is unreadable).</td>
+    <td>Ask an administrator to re-create the delegation / re-run setup; check
+        <code>audit.log</code>.</td>
+  </tr>
+  <tr>
+    <td>"Could not start '…': …"</td>
+    <td>The delegated task could not be triggered — the task or app was removed, or there is no
+        interactive session.</td>
+    <td>Make sure you are signed in and the app still exists; an administrator can read
+        <code>C:\ProgramData\AppDelegation\launcher.log</code>.</td>
+  </tr>
+  <tr>
+    <td>"Administrator mode was cancelled (administrator rights required)."</td>
+    <td>The student clicked <b>Administrator…</b> but declined the UAC prompt, or is not an
+        administrator.</td>
+    <td>Only administrators can open the console; approve UAC with an administrator account.</td>
   </tr>
 </table>
 
@@ -359,9 +447,12 @@
   </tr>
 </table>
 
-<h3>۷. پیام‌های کنسول ادمین (نوار پایین پنجره)</h3>
-<p>کنسول ادمین این پیام‌ها را در نوار پایینِ پنجره نشان می‌دهد. متنِ <b>قرمز</b> یعنی کار
-   متوقف شده و قبل از ادامه باید رفع شود.</p>
+<h3>۷. پیام‌هایی که برنامه نشان می‌دهد (و معنی‌شان)</h3>
+<p>این بخش <b>همهٔ</b> پیام‌هایی را که برنامه ممکن است نشان دهد فهرست می‌کند: متنِ <b>قرمز</b>
+   در نوار پایینِ پنجره، و <b>پنجره‌های pop-up</b>. متنِ قرمز یعنی کار متوقف شده و قبل از ادامه
+   باید رفع شود.</p>
+
+<h4>۷٫۱ کنسول ادمین — متنِ قرمز در نوار پایین</h4>
 <table>
   <tr><th>پیام</th><th>علت</th><th>راه‌حل</th></tr>
   <tr>
@@ -396,6 +487,11 @@
     <td>اول یک ردیفِ تفویض را انتخاب و سپس <b>Remove selected</b> را بزنید.</td>
   </tr>
   <tr>
+    <td>«Creating delegation…»</td>
+    <td>اطلاع‌رسانی (قرمز نیست): تفویض در حال ساخته‌شدن است.</td>
+    <td>چند لحظه صبر کنید؛ پیام موفقیت یا خطا پس از آن می‌آید.</td>
+  </tr>
+  <tr>
     <td>«Load error: …» یا «List error: …»</td>
     <td>کنسول نتوانست نرم‌افزارهای نصب‌شده، کاربران یا تسک‌های موجود را بخواند — معمولاً چون
         elevated نیست، یا دسترسی به رجیستری / Task Scheduler رد شده است.</td>
@@ -403,11 +499,83 @@
   </tr>
   <tr>
     <td>«Failed: …» یا «Remove failed: …»</td>
-    <td>ساخت یا حذفِ تسکِ زمان‌بندی‌شده شکست خورد — elevated نبودن، حساب/رمزِ ادمینِ اشتباه،
-        یا متوقف‌بودنِ سرویس <b>Task Scheduler</b>.</td>
-    <td>برنامه را elevated اجرا کنید، حساب/رمز را دوباره بررسی کنید، و مطمئن شوید سرویس
-        <b>Task Scheduler</b> در حال اجراست. جزئیات در
+    <td>ساخت یا حذفِ تسکِ زمان‌بندی‌شده شکست خورد — elevated نبودن، متوقف‌بودنِ سرویس
+        <b>Task Scheduler</b>، یا (در حالت Admin account) حساب/رمزِ اشتباه. علت دقیق به پیام
+        اضافه می‌شود (مثلاً «Could not register the scheduled task…»).</td>
+    <td>برنامه را elevated اجرا کنید، مطمئن شوید سرویس <b>Task Scheduler</b> در حال اجراست،
+        حساب/رمز را بررسی و دوباره تلاش کنید. جزئیات در
         <code>C:\ProgramData\AppDelegation\audit.log</code> هست.</td>
+  </tr>
+</table>
+
+<h4>۷٫۲ کنسول ادمین — پنجره‌های pop-up</h4>
+<table>
+  <tr><th>پنجره (عنوان: «Privileged App Delegation…»)</th><th>چه زمانی می‌آید</th><th>چه کنیم</th></tr>
+  <tr>
+    <td>⚠️ <b>Warning</b> — «The selected executable is not under Program Files or Windows…
+        Continue anyway?» (<b>Yes</b> / <b>No</b>)</td>
+    <td>فایل <code>.exe</code> انتخابی در مسیری است که کاربر عادی اجازهٔ نوشتن دارد؛ می‌تواند
+        آن را عوض و کدِ خودش را با دسترسی ادمین اجرا کند.</td>
+    <td>ترجیحاً <b>No</b> بزنید، برنامه را به <code>Program&nbsp;Files</code> (فقط-ادمین) منتقل و
+        دوباره انتخاب کنید. فقط اگر به مسیر کاملاً اعتماد دارید <b>Yes</b> بزنید.</td>
+  </tr>
+  <tr>
+    <td>✔️ <b>Information</b> — «Delegation created. User '…' can now launch '…' with
+        administrator rights…»</td>
+    <td>تفویض با موفقیت ساخته شد.</td>
+    <td>کاری لازم نیست — این یعنی موفقیت. برنامه روی دسکتاپ کاربر و در لانچرِ
+        <b>Allowed Programs</b> می‌آید.</td>
+  </tr>
+  <tr>
+    <td>❌ <b>Error</b> — متنِ دقیقِ خطا (مثلاً «Could not register the scheduled task…»؛
+        در نسخه‌های قدیمی‌تر «Object reference not set to an instance of an object»)</td>
+    <td>ساختِ تفویض شکست خورد. پیامِ «Object reference…» یک باگ هنگام ساختِ <i>اولین</i> تفویض
+        بود (پوشهٔ Task Scheduler هنوز وجود نداشت) — در این نسخه رفع شده است.</td>
+    <td>به این نسخه به‌روزرسانی کنید. در غیر این‌صورت: به‌عنوان ادمین اجرا کنید، از اجرای سرویس
+        <b>Task Scheduler</b> مطمئن شوید، حساب/رمز را بررسی و دوباره تلاش کنید.</td>
+  </tr>
+  <tr>
+    <td>❓ <b>Question</b> — «Remove delegation '…' and its desktop shortcut(s)?»
+        (<b>Yes</b> / <b>No</b>)</td>
+    <td>روی <b>Remove selected</b> در تب <b>Existing delegations</b> زدید.</td>
+    <td><b>Yes</b> تسک و شورتکات(ها) را حذف می‌کند؛ <b>No</b> لغو می‌کند.</td>
+  </tr>
+  <tr>
+    <td>⚠️ <b>Warning</b> — «Administrator rights are required to configure delegations.»</td>
+    <td>کنسول ادمین باز شد ولی پنجرهٔ UAC رد شد، یا حساب ادمین نیست.</td>
+    <td>دوباره <b>Task Delegator (Administrator)</b> را اجرا و UAC را با حساب ادمین تأیید کنید.</td>
+  </tr>
+</table>
+
+<h4>۷٫۳ لانچرِ «Allowed Programs» (دانشجو) — نوار پایین</h4>
+<table>
+  <tr><th>پیام</th><th>علت</th><th>راه‌حل</th></tr>
+  <tr>
+    <td>«No programs have been assigned to you yet.»</td>
+    <td>اطلاع‌رسانی: هنوز هیچ تفویضی برای این کاربر ساخته نشده است.</td>
+    <td>خطا نیست — ادمین از کنسول ادمین برنامه‌ها را تخصیص می‌دهد.</td>
+  </tr>
+  <tr>
+    <td>«Select a program first.»</td>
+    <td>روی <b>Run</b> زده شده بدون انتخابِ برنامه.</td>
+    <td>اول روی کاشیِ یک برنامه کلیک و سپس <b>Run</b> را بزنید (یا دابل‌کلیک کنید).</td>
+  </tr>
+  <tr>
+    <td>«Could not load programs: …»</td>
+    <td>فهرستِ برنامه‌های تخصیص‌یافته خوانده نشد (پوشهٔ منو قابل‌خواندن نیست).</td>
+    <td>از ادمین بخواهید تفویض را دوباره بسازد / setup را دوباره اجرا کند؛ <code>audit.log</code>
+        را ببینید.</td>
+  </tr>
+  <tr>
+    <td>«Could not start '…': …»</td>
+    <td>تسکِ تفویض‌شده اجرا نشد — تسک یا برنامه حذف شده، یا سشنِ تعاملی وجود ندارد.</td>
+    <td>مطمئن شوید لاگین کرده‌اید و برنامه هنوز هست؛ ادمین می‌تواند
+        <code>C:\ProgramData\AppDelegation\launcher.log</code> را بخواند.</td>
+  </tr>
+  <tr>
+    <td>«Administrator mode was cancelled (administrator rights required).»</td>
+    <td>دانشجو روی <b>Administrator…</b> زد ولی UAC را رد کرد، یا ادمین نیست.</td>
+    <td>فقط ادمین‌ها می‌توانند کنسول را باز کنند؛ UAC را با حساب ادمین تأیید کنید.</td>
   </tr>
 </table>
 </div>
