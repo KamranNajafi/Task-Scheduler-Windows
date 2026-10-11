@@ -11,11 +11,12 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>TaskDelegator</AssemblyName>
     <RootNamespace>TaskDelegator</RootNamespace>
-    <!-- DIAGNOSTIC (v1.3.1): the custom manifest is disabled and NO Win32 manifest
-         is embedded, to isolate a side-by-side error (code 14001) on a lab PC.
-         If the app launches with no manifest, the manifest was the cause and a
-         proper one is restored; if it still fails, the PC's component store is. -->
-    <!-- <ApplicationManifest>app.manifest</ApplicationManifest> -->
+    <!-- No embedded Win32 manifest. An embedded application manifest caused a
+         side-by-side activation error (CreateProcess code 14001,
+         ERROR_SXS_CANT_GEN_ACTCTX) on some Windows installs; removing it fixes
+         that and the app runs correctly. Elevation (asInvoker default + a `runas`
+         relaunch for the admin console) and DPI awareness are handled in code
+         (Program.cs), so no manifest is required. -->
     <NoWin32Manifest>true</NoWin32Manifest>
     <Version>1.0.0</Version>
     <Product>Task Scheduler - Privileged App Delegation</Product>

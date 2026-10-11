@@ -114,6 +114,10 @@ dotnet publish src/TaskDelegator/TaskDelegator.csproj -c Release -f net48 -o pub
 
 ## Usage
 
+> 📖 **User guide:** [`docs/USER-GUIDE.md`](docs/USER-GUIDE.md) (English + Persian).
+> A printable **PDF** (`TaskDelegator-User-Guide.pdf`) is attached to every
+> [Release](https://github.com/KamranNajafi/Task-Scheduler-Windows/releases).
+
 ### Administrator — set up delegations
 
 1. Copy `TaskDelegator.exe` onto the Windows machine (anywhere — it's portable).

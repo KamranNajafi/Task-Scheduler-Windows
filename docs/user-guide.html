@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Task Delegator — User Guide</title>
+<style>
+  :root { --accent:#0F6CBD; --ink:#1a1a1a; --muted:#555; --line:#d9d9d9;
+          --note:#eef5fc; --warn:#fff6e6; --warnline:#e0a008; --code:#f3f4f6; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; color:var(--ink); }
+  body { font-family:"Segoe UI",Arial,sans-serif; font-size:12pt; line-height:1.55; }
+  @page { size:A4; margin:18mm 16mm; }
+
+  .cover { text-align:center; padding:30mm 0 12mm; border-bottom:3px solid var(--accent); }
+  .cover h1 { color:var(--accent); font-size:30pt; margin:0 0 6pt; }
+  .cover .sub { color:var(--muted); font-size:13pt; margin:0; }
+  .cover .ver { margin-top:10pt; color:var(--muted); font-size:11pt; }
+
+  h2 { color:var(--accent); font-size:17pt; margin:20pt 0 6pt; padding-bottom:3pt;
+       border-bottom:2px solid var(--line); }
+  h3 { font-size:13.5pt; margin:14pt 0 4pt; }
+  p, li { color:var(--ink); }
+  ol, ul { margin:6pt 0 6pt 0; padding-inline-start:22px; }
+  li { margin:3pt 0; }
+  code { font-family:Consolas,"Courier New",monospace; background:var(--code);
+         padding:1px 5px; border-radius:4px; font-size:10.5pt; }
+  pre { background:var(--code); border:1px solid var(--line); border-radius:6px;
+        padding:9px 12px; font-family:Consolas,monospace; font-size:10pt; overflow:auto; }
+
+  .note, .warn { border-radius:6px; padding:9px 13px; margin:10pt 0; font-size:11pt; }
+  .note { background:var(--note); border:1px solid #bcd9f2; }
+  .warn { background:var(--warn); border:1px solid var(--warnline); }
+  .warn b, .note b { color:var(--accent); }
+  .warn b { color:#9a6a00; }
+
+  table { border-collapse:collapse; width:100%; margin:8pt 0; font-size:11pt; }
+  th, td { border:1px solid var(--line); padding:6px 9px; text-align:start; vertical-align:top; }
+  th { background:#f0f6fc; color:var(--accent); }
+
+  .diagram { text-align:center; margin:12pt 0; }
+  .pagebreak { page-break-before:always; }
+
+  /* Persian / RTL section */
+  .fa { direction:rtl; text-align:right; font-family:Tahoma,"Segoe UI",sans-serif; }
+  .fa ol, .fa ul { padding-inline-start:0; padding-inline-end:22px; }
+  .fa code, .fa pre { direction:ltr; text-align:left; unicode-bidi:embed; }
+  .fa table th, .fa table td { text-align:right; }
+</style>
+</head>
+<body>
+
+<!-- ======================= COVER ======================= -->
+<div class="cover">
+  <h1>Task Delegator</h1>
+  <p class="sub">User Guide &nbsp;•&nbsp; راهنمای کاربر</p>
+  <p class="ver">Privileged Application Delegation for Windows</p>
+</div>
+
+<div class="diagram">
+  <svg width="540" height="150" viewBox="0 0 540 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="#0F6CBD"/>
+      </marker>
+    </defs>
+    <rect x="6" y="48" width="150" height="54" rx="8" fill="#eef5fc" stroke="#0F6CBD"/>
+    <text x="81" y="71" text-anchor="middle" font-family="Segoe UI" font-size="12" fill="#0F6CBD" font-weight="bold">Administrator</text>
+    <text x="81" y="89" text-anchor="middle" font-family="Segoe UI" font-size="10" fill="#555">creates a delegation</text>
+
+    <rect x="195" y="48" width="150" height="54" rx="8" fill="#eef5fc" stroke="#0F6CBD"/>
+    <text x="270" y="71" text-anchor="middle" font-family="Segoe UI" font-size="12" fill="#0F6CBD" font-weight="bold">SYSTEM task</text>
+    <text x="270" y="89" text-anchor="middle" font-family="Segoe UI" font-size="10" fill="#555">+ desktop shortcut</text>
+
+    <rect x="384" y="48" width="150" height="54" rx="8" fill="#eef5fc" stroke="#0F6CBD"/>
+    <text x="459" y="71" text-anchor="middle" font-family="Segoe UI" font-size="12" fill="#0F6CBD" font-weight="bold">Standard user</text>
+    <text x="459" y="89" text-anchor="middle" font-family="Segoe UI" font-size="10" fill="#555">runs app as admin</text>
+
+    <line x1="158" y1="75" x2="192" y2="75" stroke="#0F6CBD" stroke-width="2" marker-end="url(#ar)"/>
+    <line x1="347" y1="75" x2="381" y2="75" stroke="#0F6CBD" stroke-width="2" marker-end="url(#ar)"/>
+  </svg>
+</div>
+
+<p style="text-align:center;color:#555;font-size:11pt;">
+  An administrator lets a standard (non-admin) user run specific approved applications
+  with administrator rights — without sharing the admin password.
+</p>
+
+<!-- ======================= ENGLISH ======================= -->
+<h2>English</h2>
+
+<h3>1. What it is</h3>
+<p>
+  <b>Task Delegator</b> lets an administrator allow a <b>standard (non-admin) user</b> to
+  run specific, approved applications with <b>administrator rights</b> — without giving
+  out the administrator password. It is ideal for a <b>training lab / classroom</b>:
+  students can launch software that requires admin rights, but cannot uninstall it or
+  change anything.
+</p>
+
+<h3>2. Install</h3>
+<ol>
+  <li>Run <code>TaskDelegatorSetup.exe</code> and approve the <b>UAC</b> prompt.</li>
+  <li>It installs to <code>Program Files</code> and adds shortcuts:
+    <b>Allowed Programs</b> (for everyone) and <b>Task Delegator (Administrator)</b>.</li>
+</ol>
+<div class="note"><b>No prerequisites.</b> The installer uses the .NET Framework 4.8 that is
+  built into Windows 10/11 — nothing else to install.</div>
+
+<h3>3. Administrator — create a delegation</h3>
+<ol>
+  <li>Open <b>Task Delegator (Administrator)</b> (or run the app and click
+    <b>Administrator…</b>) and approve <b>UAC</b>. This is the "admin login".</li>
+  <li>On the <b>Create delegation</b> tab:
+    <ul>
+      <li><b>Installed application</b> — pick it from the list (type to filter), or
+        <b>Browse…</b> to its <code>.exe</code>.</li>
+      <li><b>Target Windows user</b> — pick the user (works for Standard users).</li>
+      <li><b>Run as</b> — <b>SYSTEM (no password)</b> is recommended; or choose
+        <b>Admin account</b> and type an administrator account + password.</li>
+      <li>Keep the two shortcut checkboxes ticked.</li>
+    </ul>
+  </li>
+  <li>Click <b>Create delegation</b>.</li>
+  <li>The <b>Existing delegations</b> tab lists everything and lets you remove any.</li>
+</ol>
+
+<h3>4. Student / standard user — run allowed programs</h3>
+<ol>
+  <li>Open <b>Allowed Programs</b> from the desktop (no UAC prompt).</li>
+  <li>Double-click a program — it starts <b>with administrator rights, on your own
+    desktop</b>.</li>
+</ol>
+<p>The launcher is <b>run-only</b>: there is no uninstall, remove, or settings action.</p>
+
+<h3>5. Security notes</h3>
+<ul>
+  <li>Delegating an application is like granting <code>sudo</code> on it —
+    <b>only delegate trusted, single-purpose apps</b>.</li>
+  <li>Keep the app's <code>.exe</code> in a folder users cannot write to (e.g.
+    <code>Program&nbsp;Files</code>), so it cannot be swapped for other code.</li>
+  <li>Every action is logged to
+    <code>C:\ProgramData\AppDelegation\audit.log</code>.</li>
+</ul>
+
+<h3>6. Troubleshooting</h3>
+<table>
+  <tr><th>Problem</th><th>Fix</th></tr>
+  <tr><td>"side-by-side configuration is incorrect" (code&nbsp;14001)</td>
+      <td>Use the installer (this build ships without the manifest that caused it). On an
+          old / corrupted Windows, also run <code>sfc /scannow</code> and
+          <code>DISM /Online /Cleanup-Image /RestoreHealth</code>, then restart.</td></tr>
+  <tr><td>Shortcut didn't appear</td>
+      <td>If that user has never signed in, it is placed on the <b>Public</b> desktop.</td></tr>
+  <tr><td>Nothing happens when the user clicks the shortcut</td>
+      <td>Check <code>C:\ProgramData\AppDelegation\launcher.log</code>.</td></tr>
+</table>
+
+<!-- ======================= PERSIAN ======================= -->
+<div class="fa pagebreak">
+<h2>فارسی</h2>
+
+<h3>۱. این برنامه چیست؟</h3>
+<p>
+  <b>Task Delegator</b> به <b>ادمین</b> اجازه می‌دهد که اجازهٔ اجرای <b>یک نرم‌افزار مشخص با
+  دسترسی ادمین</b> را به یک <b>کاربر عادی (غیرادمین)</b> بدهد — <b>بدون دادن رمز ادمین</b>.
+  مناسب برای <b>محیط آموزشگاه / آزمایشگاه</b>: دانشجو می‌تواند نرم‌افزاری را که به دسترسی
+  ادمین نیاز دارد اجرا کند، ولی نمی‌تواند آن را حذف (uninstall) یا تنظیمات را تغییر دهد.
+</p>
+
+<h3>۲. نصب</h3>
+<ol>
+  <li><code>TaskDelegatorSetup.exe</code> را اجرا کنید و پنجرهٔ <b>UAC</b> را تأیید کنید.</li>
+  <li>برنامه در <code>Program Files</code> نصب می‌شود و شورتکات‌ها را می‌سازد:
+    <b>Allowed Programs</b> (برای همه) و <b>Task Delegator (Administrator)</b>.</li>
+</ol>
+<div class="note"><b>بدون پیش‌نیاز.</b> نصب‌کننده از <b>.NET Framework 4.8</b> که در ویندوز
+  ۱۰/۱۱ توکار است استفاده می‌کند — چیز دیگری لازم نیست نصب شود.</div>
+
+<h3>۳. ادمین — ساخت یک تفویض (delegation)</h3>
+<ol>
+  <li><b>Task Delegator (Administrator)</b> را باز کنید (یا برنامه را اجرا کرده و روی
+    <b>Administrator…</b> بزنید) و <b>UAC</b> را تأیید کنید. همین «لاگین ادمین» است.</li>
+  <li>در تب <b>Create delegation</b>:
+    <ul>
+      <li><b>نرم‌افزار نصب‌شده</b> را از لیست انتخاب کنید (برای فیلتر تایپ کنید) یا با
+        <b>Browse…</b> فایل <code>.exe</code> را انتخاب کنید.</li>
+      <li><b>کاربر ویندوز</b> موردنظر را انتخاب کنید (برای کاربر Standard هم کار می‌کند).</li>
+      <li><b>Run as</b>: حالت <b>SYSTEM (بدون رمز)</b> پیشنهاد می‌شود؛ یا <b>Admin account</b>
+        را انتخاب و حساب ادمین + رمز را وارد کنید.</li>
+      <li>هر دو گزینهٔ شورتکات را فعال بگذارید.</li>
+    </ul>
+  </li>
+  <li>روی <b>Create delegation</b> کلیک کنید.</li>
+  <li>در تب <b>Existing delegations</b> می‌توانید همه را ببینید و حذف کنید.</li>
+</ol>
+
+<h3>۴. دانشجو / کاربر عادی — اجرای برنامه‌های مجاز</h3>
+<ol>
+  <li>آیکن <b>Allowed Programs</b> را از روی دسکتاپ باز کنید (بدون UAC).</li>
+  <li>روی یک برنامه دابل‌کلیک کنید — <b>با دسترسی ادمین و روی دسکتاپ خودتان</b> اجرا می‌شود.</li>
+</ol>
+<p>این پنجره <b>فقط-اجرا</b> است: هیچ گزینهٔ حذف/uninstall یا تنظیماتی ندارد.</p>
+
+<h3>۵. نکات امنیتی</h3>
+<ul>
+  <li>تفویض یک نرم‌افزار مثل دادن <code>sudo</code> روی آن است —
+    <b>فقط نرم‌افزارهای مورد اعتماد و تک‌منظوره را تفویض کنید</b>.</li>
+  <li>فایل <code>.exe</code> برنامه را در مسیری بگذارید که کاربر اجازهٔ نوشتن ندارد (مثل
+    <code>Program&nbsp;Files</code>)، تا با کد دیگری جایگزین نشود.</li>
+  <li>همهٔ عملیات در <code>C:\ProgramData\AppDelegation\audit.log</code> ثبت می‌شود.</li>
+</ul>
+
+<h3>۶. رفع اشکال</h3>
+<table>
+  <tr><th>مشکل</th><th>راه‌حل</th></tr>
+  <tr><td>خطای «side-by-side configuration is incorrect» (کد ۱۴۰۰۱)</td>
+      <td>از همین نصب‌کننده استفاده کنید (این نسخه بدون آن مانیفستِ مشکل‌دار ساخته شده). روی
+          ویندوزِ قدیمی/خراب، <code>sfc /scannow</code> و
+          <code>DISM /Online /Cleanup-Image /RestoreHealth</code> را اجرا و سیستم را ری‌استارت کنید.</td></tr>
+  <tr><td>شورتکات ساخته نشد</td>
+      <td>اگر آن کاربر هرگز لاگین نکرده باشد، شورتکات روی دسکتاپ <b>Public</b> گذاشته می‌شود.</td></tr>
+  <tr><td>با کلیک روی شورتکات چیزی اجرا نمی‌شود</td>
+      <td>فایل <code>C:\ProgramData\AppDelegation\launcher.log</code> را بررسی کنید.</td></tr>
+</table>
+</div>
+
+</body>
+</html>

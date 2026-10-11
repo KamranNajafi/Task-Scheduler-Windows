@@ -5,6 +5,7 @@ obj/
 publish/
 installer_out/
 redist/
+docs_out/
 *.user
 *.binlog
 

@@ -67,6 +67,30 @@ jobs:
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$ver" installer/TaskDelegator.iss
           Get-ChildItem installer_out
 
+      - name: Render user guide PDF (headless Edge)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path docs_out | Out-Null
+          $edge = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+          if (-not (Test-Path $edge)) { $edge = "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe" }
+          $html = (Resolve-Path docs/user-guide.html).Path
+          $url  = "file:///" + ($html -replace '\\','/')
+          $pdf  = Join-Path ((Resolve-Path docs_out).Path) "TaskDelegator-User-Guide.pdf"
+          $profile = Join-Path $env:TEMP "edgepdf"
+          & $edge --headless=new --disable-gpu --no-sandbox --no-pdf-header-footer `
+            "--user-data-dir=$profile" --run-all-compositor-stages-before-draw `
+            --virtual-time-budget=15000 "--print-to-pdf=$pdf" $url
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $pdf)) { throw "PDF was not generated" }
+          Get-ChildItem docs_out
+
+      - name: Upload user guide PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TaskDelegator-User-Guide
+          path: docs_out/TaskDelegator-User-Guide.pdf
+          if-no-files-found: error
+
       - name: Show output
         shell: pwsh
         run: |
@@ -127,6 +151,7 @@ jobs:
             installer_out/TaskDelegatorSetup.exe
             publish/net8/TaskDelegator.exe
             publish/TaskDelegator-win7-net48.zip
+            docs_out/TaskDelegator-User-Guide.pdf
           fail_on_unmatched_files: true
           generate_release_notes: true
           body: |
@@ -145,7 +170,8 @@ jobs:
               (in-box on Windows 10/11; installable on Windows 7 SP1).
             - `TaskDelegator.exe` — portable single-file **net8** build (Windows 10/11).
               Newer runtime but requires the Visual C++ Redistributable on the machine.
+            - `TaskDelegator-User-Guide.pdf` — bilingual (English + Persian) user guide.
 
-            See the README for usage and the security model.
+            See the README and `docs/USER-GUIDE.md` for usage and the security model.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
