@@ -1,9 +1,11 @@
-; Inno Setup script for Task Delegator (Windows 10/11, net8 build).
-; Installs the app to Program Files and, if the Microsoft Visual C++ runtime is
-; missing, silently runs the bundled vc_redist.x64.exe — so the setup is fully
-; self-contained and needs no pre-installed prerequisites.
+; Inno Setup script for Task Delegator.
 ;
-; CI passes the version:  ISCC /DAppVersion=1.2.0 installer\TaskDelegator.iss
+; Installs the .NET Framework 4.8 (net48) build — it uses the in-box .NET
+; Framework present on Windows 10/11 and has NO Visual C++ runtime dependency,
+; so it avoids the "side-by-side configuration is incorrect" error that the
+; self-contained net8 build can hit on clean lab PCs.
+;
+; CI passes the version:  ISCC /DAppVersion=1.3.0 installer\TaskDelegator.iss
 
 #ifndef AppVersion
   #define AppVersion "1.0.0"
@@ -26,9 +28,7 @@ OutputBaseFilename=TaskDelegatorSetup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=admin
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
-MinVersion=10.0
+MinVersion=6.1sp1
 WizardStyle=modern
 UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
@@ -37,8 +37,8 @@ UninstallDisplayName={#AppName}
 Name: "desktopicon"; Description: "Create an 'Allowed Programs' shortcut on the desktop"; GroupDescription: "Additional shortcuts:"
 
 [Files]
-Source: "..\publish\net8\TaskDelegator.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\redist\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+; The whole net48 output folder (TaskDelegator.exe + its dependency DLLs).
+Source: "..\publish\net48\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\Allowed Programs"; Filename: "{app}\{#AppExe}"; Comment: "Run approved applications (student launcher)"
@@ -47,15 +47,4 @@ Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\Allowed Programs"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Run]
-; One-time prerequisite: install the Visual C++ runtime only if it is missing.
-Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing the Microsoft Visual C++ runtime (one-time prerequisite)..."; Check: VCRedistMissing
-; Offer to open the admin console right after installing.
 Filename: "{app}\{#AppExe}"; Parameters: "--admin"; Description: "Open Task Delegator (Administrator) now"; Flags: postinstall nowait skipifsilent
-
-[Code]
-function VCRedistMissing: Boolean;
-begin
-  // The x64 VC++ 2015-2022 runtime installs these into System32.
-  Result := not (FileExists(ExpandConstant('{sys}\vcruntime140.dll')) and
-                 FileExists(ExpandConstant('{sys}\vcruntime140_1.dll')));
-end;

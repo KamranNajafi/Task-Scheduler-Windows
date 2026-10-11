@@ -7,6 +7,11 @@ namespace TaskDelegator;
 
 internal static class Program
 {
+#if !NET8_0_OR_GREATER
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetProcessDPIAware();
+#endif
+
     [STAThread]
     private static int Main(string[] args)
     {
@@ -16,10 +21,13 @@ internal static class Program
         if (args.Length >= 2 && args[0].Equals("--launch", StringComparison.OrdinalIgnoreCase))
             return SessionLauncher.Run(args[1]);
 
+        // DPI awareness is set in code (not in the manifest) so the manifest stays
+        // minimal and cannot cause a side-by-side activation error.
 #if NET8_0_OR_GREATER
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+#else
+        try { SetProcessDPIAware(); } catch { /* pre-Vista or already set */ }
 #endif
-        // On .NET Framework (Windows 7 build) DPI awareness comes from app.manifest.
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 

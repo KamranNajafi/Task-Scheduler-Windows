@@ -55,17 +55,11 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path publish/net48/* -DestinationPath publish/TaskDelegator-win7-net48.zip -Force
 
-      - name: Download Visual C++ redistributable (x64)
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path redist | Out-Null
-          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile redist/vc_redist.x64.exe
-
       - name: Install Inno Setup
         shell: pwsh
         run: choco install innosetup --no-progress -y
 
-      - name: Build installer (Windows 10/11, bundles VC++ runtime)
+      - name: Build installer (net48 payload, no VC++ dependency)
         shell: pwsh
         run: |
           $ver = (Get-Content VERSION -Raw).Trim().TrimStart('v')
@@ -142,15 +136,15 @@ jobs:
             "Allowed Programs" launcher for classroom / lab use.
 
             **Downloads**
-            - `TaskDelegatorSetup.exe` — **recommended installer** for Windows 10 / 11.
-              Installs the app and, if missing, silently installs the Microsoft Visual
-              C++ runtime — no prerequisites to set up by hand.
-            - `TaskDelegator.exe` — Windows 10 / 11 (x64), portable single file.
-              Requires the Visual C++ runtime on the machine (use the installer if you
-              hit a "side-by-side configuration is incorrect" error).
-            - `TaskDelegator-win7-net48.zip` — Windows 7 SP1 / 8.1 / 10 / 11. Extract
-              and run `TaskDelegator.exe`; requires **.NET Framework 4.8** (preinstalled
-              on Windows 10/11; installable on Windows 7 SP1). No VC++ runtime needed.
+            - `TaskDelegatorSetup.exe` — **recommended installer** (Windows 7 SP1 → 11).
+              Installs the app, creates shortcuts, and uses the in-box **.NET Framework
+              4.8** — **no Visual C++ runtime needed**, so it does not hit the
+              "side-by-side configuration is incorrect" error.
+            - `TaskDelegator-win7-net48.zip` — the same net48 build as a portable zip
+              (extract all files, run `TaskDelegator.exe`). Needs .NET Framework 4.8
+              (in-box on Windows 10/11; installable on Windows 7 SP1).
+            - `TaskDelegator.exe` — portable single-file **net8** build (Windows 10/11).
+              Newer runtime but requires the Visual C++ Redistributable on the machine.
 
             See the README for usage and the security model.
         env:
