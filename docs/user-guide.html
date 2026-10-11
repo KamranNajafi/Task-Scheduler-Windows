@@ -142,17 +142,60 @@
     <code>C:\ProgramData\AppDelegation\audit.log</code>.</li>
 </ul>
 
-<h3>6. Troubleshooting</h3>
+<h3>6. Errors &amp; causes</h3>
 <table>
-  <tr><th>Problem</th><th>Fix</th></tr>
-  <tr><td>"side-by-side configuration is incorrect" (code&nbsp;14001)</td>
-      <td>Use the installer (this build ships without the manifest that caused it). On an
-          old / corrupted Windows, also run <code>sfc /scannow</code> and
-          <code>DISM /Online /Cleanup-Image /RestoreHealth</code>, then restart.</td></tr>
-  <tr><td>Shortcut didn't appear</td>
-      <td>If that user has never signed in, it is placed on the <b>Public</b> desktop.</td></tr>
-  <tr><td>Nothing happens when the user clicks the shortcut</td>
-      <td>Check <code>C:\ProgramData\AppDelegation\launcher.log</code>.</td></tr>
+  <tr><th>Error / symptom</th><th>Cause</th><th>Fix</th></tr>
+  <tr>
+    <td>"side-by-side configuration is incorrect" — <code>CreateProcess failed; code&nbsp;14001</code></td>
+    <td>An embedded Win32 application manifest that this Windows could not turn into an
+        activation context (or a damaged Windows component store / WinSxS).</td>
+    <td>Use this installer — it ships <b>without</b> that manifest. If it persists, the PC's
+        component store is corrupt: run <code>sfc /scannow</code>, then
+        <code>DISM /Online /Cleanup-Image /RestoreHealth</code>, and restart.</td>
+  </tr>
+  <tr>
+    <td>Portable <code>TaskDelegator.exe</code> (net8) won't start, or missing
+        <code>vcruntime140.dll</code></td>
+    <td>The self-contained .NET 8 build needs the <b>Microsoft Visual C++ Redistributable</b>,
+        which is absent on clean machines.</td>
+    <td>Use the <b>installer</b> or the <b>net48</b> build (no VC++ needed), or install the
+        VC++ 2015–2022 x64 Redistributable.</td>
+  </tr>
+  <tr>
+    <td>"This application requires .NET Framework 4.8"</td>
+    <td>.NET Framework 4.8 is not installed (only happens on Windows 7).</td>
+    <td>Install .NET Framework 4.8 — it is already built into Windows 10/11.</td>
+  </tr>
+  <tr>
+    <td>"Administrator rights are required", or the UAC prompt was cancelled</td>
+    <td>The admin console needs elevation and the prompt was declined, or the account is
+        not an administrator.</td>
+    <td>Run <b>Task Delegator (Administrator)</b> and approve UAC with an administrator
+        account.</td>
+  </tr>
+  <tr>
+    <td>Student double-clicks the shortcut but nothing opens</td>
+    <td>The delegated app was moved/removed, there is no interactive session, or the task
+        could not start.</td>
+    <td>Check <code>C:\ProgramData\AppDelegation\launcher.log</code>; make sure the app
+        still exists at its path and the user is signed in.</td>
+  </tr>
+  <tr>
+    <td>"No executable auto-detected for …"</td>
+    <td>That application did not register a clean executable path.</td>
+    <td>Click <b>Browse…</b> and pick the real <code>.exe</code>.</td>
+  </tr>
+  <tr>
+    <td>The shortcut landed on the <b>Public</b> desktop, not the user's</td>
+    <td>That user has never signed in, so their profile/desktop does not exist yet.</td>
+    <td>Have them sign in once, or leave it on the Public desktop (visible to all users).</td>
+  </tr>
+  <tr>
+    <td>Warning: "the executable is not under Program Files / Windows"</td>
+    <td>The delegated <code>.exe</code> is in a folder the user can write to — they could
+        replace it and run their own code elevated.</td>
+    <td>Move the app to <code>Program&nbsp;Files</code> (admin-only) before delegating.</td>
+  </tr>
 </table>
 
 <!-- ======================= PERSIAN ======================= -->
@@ -210,17 +253,57 @@
   <li>همهٔ عملیات در <code>C:\ProgramData\AppDelegation\audit.log</code> ثبت می‌شود.</li>
 </ul>
 
-<h3>۶. رفع اشکال</h3>
+<h3>۶. خطاها و علت‌ها</h3>
 <table>
-  <tr><th>مشکل</th><th>راه‌حل</th></tr>
-  <tr><td>خطای «side-by-side configuration is incorrect» (کد ۱۴۰۰۱)</td>
-      <td>از همین نصب‌کننده استفاده کنید (این نسخه بدون آن مانیفستِ مشکل‌دار ساخته شده). روی
-          ویندوزِ قدیمی/خراب، <code>sfc /scannow</code> و
-          <code>DISM /Online /Cleanup-Image /RestoreHealth</code> را اجرا و سیستم را ری‌استارت کنید.</td></tr>
-  <tr><td>شورتکات ساخته نشد</td>
-      <td>اگر آن کاربر هرگز لاگین نکرده باشد، شورتکات روی دسکتاپ <b>Public</b> گذاشته می‌شود.</td></tr>
-  <tr><td>با کلیک روی شورتکات چیزی اجرا نمی‌شود</td>
-      <td>فایل <code>C:\ProgramData\AppDelegation\launcher.log</code> را بررسی کنید.</td></tr>
+  <tr><th>خطا / نشانه</th><th>علت</th><th>راه‌حل</th></tr>
+  <tr>
+    <td>«side-by-side configuration is incorrect» — <code>CreateProcess failed; code&nbsp;14001</code></td>
+    <td>یک مانیفستِ Win32 داخل فایل exe که این ویندوز نتوانست از آن activation context بسازد
+        (یا خرابیِ Component Store / WinSxS ویندوز).</td>
+    <td>از همین نصب‌کننده استفاده کنید — <b>بدون</b> آن مانیفست ساخته شده. اگر باز هم بود،
+        Component Store آن سیستم خراب است: <code>sfc /scannow</code> سپس
+        <code>DISM /Online /Cleanup-Image /RestoreHealth</code> را اجرا و ری‌استارت کنید.</td>
+  </tr>
+  <tr>
+    <td>نسخهٔ پورتابل <code>TaskDelegator.exe</code> (net8) اجرا نمی‌شود، یا نبودِ
+        <code>vcruntime140.dll</code></td>
+    <td>نسخهٔ self-contained دات‌نت ۸ به <b>Microsoft Visual C++ Redistributable</b> نیاز دارد
+        که روی سیستم‌های تازه‌نصب نیست.</td>
+    <td>از <b>نصب‌کننده</b> یا نسخهٔ <b>net48</b> استفاده کنید (بدون نیاز به VC++)، یا
+        VC++ 2015–2022 x64 را نصب کنید.</td>
+  </tr>
+  <tr>
+    <td>«This application requires .NET Framework 4.8»</td>
+    <td>دات‌نت فریم‌ورک ۴.۸ نصب نیست (فقط روی ویندوز ۷ پیش می‌آید).</td>
+    <td>.NET Framework 4.8 را نصب کنید — روی ویندوز ۱۰/۱۱ از قبل توکار است.</td>
+  </tr>
+  <tr>
+    <td>«Administrator rights are required» یا لغو شدن پنجرهٔ UAC</td>
+    <td>کنسول ادمین به elevation نیاز دارد و پنجره رد شده، یا حساب ادمین نیست.</td>
+    <td><b>Task Delegator (Administrator)</b> را اجرا و UAC را با یک حساب ادمین تأیید کنید.</td>
+  </tr>
+  <tr>
+    <td>دانشجو روی شورتکات دابل‌کلیک می‌کند ولی چیزی باز نمی‌شود</td>
+    <td>برنامهٔ تفویض‌شده جابه‌جا/حذف شده، سشن تعاملی وجود ندارد، یا تسک اجرا نشده است.</td>
+    <td>فایل <code>C:\ProgramData\AppDelegation\launcher.log</code> را ببینید؛ مطمئن شوید
+        برنامه در مسیرش هست و کاربر لاگین کرده است.</td>
+  </tr>
+  <tr>
+    <td>«No executable auto-detected for …»</td>
+    <td>آن نرم‌افزار مسیرِ اجراییِ تمیزی ثبت نکرده است.</td>
+    <td>روی <b>Browse…</b> بزنید و فایل <code>.exe</code> واقعی را انتخاب کنید.</td>
+  </tr>
+  <tr>
+    <td>شورتکات روی دسکتاپ <b>Public</b> ساخته شد، نه دسکتاپ کاربر</td>
+    <td>آن کاربر هرگز لاگین نکرده، پس پروفایل/دسکتاپش هنوز ساخته نشده است.</td>
+    <td>یک‌بار لاگین کند، یا روی دسکتاپ Public بماند (برای همه قابل‌دیدن است).</td>
+  </tr>
+  <tr>
+    <td>هشدار: «the executable is not under Program Files / Windows»</td>
+    <td>فایل <code>.exe</code> تفویض‌شده در مسیری است که کاربر اجازهٔ نوشتن دارد — می‌تواند
+        آن را با کد خودش جایگزین و با دسترسی ادمین اجرا کند.</td>
+    <td>قبل از تفویض، برنامه را در <code>Program&nbsp;Files</code> (فقط-ادمین) قرار دهید.</td>
+  </tr>
 </table>
 </div>
 

@@ -55,12 +55,17 @@ The launcher is **run-only**: no uninstall, remove, or settings action.
 - Keep the app's `.exe` in a folder users cannot write to (e.g. `Program Files`).
 - Every action is logged to `C:\ProgramData\AppDelegation\audit.log`.
 
-### 6. Troubleshooting
-| Problem | Fix |
-|---|---|
-| "side-by-side configuration is incorrect" (code 14001) | Use this installer (it ships without the manifest that caused it). On an old/corrupted Windows also run `sfc /scannow` and `DISM /Online /Cleanup-Image /RestoreHealth`, then restart. |
-| Shortcut didn't appear | If the user has never signed in, it goes to the **Public** desktop. |
-| Nothing happens on click | Check `C:\ProgramData\AppDelegation\launcher.log`. |
+### 6. Errors & causes
+| Error / symptom | Cause | Fix |
+|---|---|---|
+| "side-by-side configuration is incorrect" — `CreateProcess failed; code 14001` | An embedded Win32 manifest this Windows couldn't turn into an activation context (or a damaged component store / WinSxS). | Use this installer — it ships **without** that manifest. If it persists, run `sfc /scannow` then `DISM /Online /Cleanup-Image /RestoreHealth` and restart. |
+| Portable `TaskDelegator.exe` (net8) won't start / missing `vcruntime140.dll` | The self-contained .NET 8 build needs the **Visual C++ Redistributable**, absent on clean machines. | Use the **installer** or the **net48** build (no VC++), or install VC++ 2015–2022 x64. |
+| "This application requires .NET Framework 4.8" | .NET Framework 4.8 not installed (only on Windows 7). | Install .NET Framework 4.8 (in-box on Windows 10/11). |
+| "Administrator rights are required" / UAC cancelled | The admin console needs elevation and the prompt was declined, or the account is not admin. | Run **Task Delegator (Administrator)** and approve UAC as an administrator. |
+| Student clicks the shortcut but nothing opens | The delegated app moved/was removed, no interactive session, or the task couldn't start. | Check `C:\ProgramData\AppDelegation\launcher.log`; ensure the app exists and the user is signed in. |
+| "No executable auto-detected for …" | The app didn't register a clean executable path. | Click **Browse…** and pick the real `.exe`. |
+| Shortcut landed on the **Public** desktop | That user has never signed in (no profile yet). | Have them sign in once, or leave it on Public. |
+| Warning: "executable is not under Program Files / Windows" | The delegated `.exe` is user-writable — it could be swapped for other code and run elevated. | Move the app to `Program Files` (admin-only) before delegating. |
 
 ---
 
@@ -105,9 +110,14 @@ The launcher is **run-only**: no uninstall, remove, or settings action.
 - فایل `.exe` برنامه را در مسیری بگذارید که کاربر اجازهٔ نوشتن ندارد (مثل `Program Files`).
 - همهٔ عملیات در `C:\ProgramData\AppDelegation\audit.log` ثبت می‌شود.
 
-### ۶. رفع اشکال
-| مشکل | راه‌حل |
-|---|---|
-| خطای «side-by-side configuration is incorrect» (کد ۱۴۰۰۱) | از همین نصب‌کننده استفاده کنید (بدون آن مانیفستِ مشکل‌دار ساخته شده). روی ویندوزِ قدیمی/خراب، `sfc /scannow` و `DISM /Online /Cleanup-Image /RestoreHealth` را اجرا و ری‌استارت کنید. |
-| شورتکات ساخته نشد | اگر آن کاربر هرگز لاگین نکرده باشد، روی دسکتاپ **Public** گذاشته می‌شود. |
-| با کلیک چیزی اجرا نمی‌شود | فایل `C:\ProgramData\AppDelegation\launcher.log` را بررسی کنید. |
+### ۶. خطاها و علت‌ها
+| خطا / نشانه | علت | راه‌حل |
+|---|---|---|
+| «side-by-side configuration is incorrect» — `CreateProcess failed; code 14001` | مانیفستِ Win32 داخل exe که این ویندوز نتوانست از آن activation context بسازد (یا خرابیِ Component Store / WinSxS). | از همین نصب‌کننده استفاده کنید — **بدون** آن مانیفست ساخته شده. اگر باز هم بود، `sfc /scannow` سپس `DISM /Online /Cleanup-Image /RestoreHealth` را اجرا و ری‌استارت کنید. |
+| نسخهٔ پورتابل `TaskDelegator.exe` (net8) اجرا نمی‌شود / نبودِ `vcruntime140.dll` | نسخهٔ self-contained دات‌نت ۸ به **Visual C++ Redistributable** نیاز دارد که روی سیستم تازه‌نصب نیست. | از **نصب‌کننده** یا نسخهٔ **net48** استفاده کنید (بدون VC++)، یا VC++ 2015–2022 x64 را نصب کنید. |
+| «This application requires .NET Framework 4.8» | دات‌نت فریم‌ورک ۴.۸ نصب نیست (فقط روی ویندوز ۷). | .NET Framework 4.8 را نصب کنید (روی ویندوز ۱۰/۱۱ توکار است). |
+| «Administrator rights are required» / لغو UAC | کنسول ادمین به elevation نیاز دارد و پنجره رد شده، یا حساب ادمین نیست. | **Task Delegator (Administrator)** را اجرا و UAC را با حساب ادمین تأیید کنید. |
+| دانشجو روی شورتکات کلیک می‌کند ولی چیزی باز نمی‌شود | برنامهٔ تفویض‌شده جابه‌جا/حذف شده، سشن تعاملی نیست، یا تسک اجرا نشده. | فایل `C:\ProgramData\AppDelegation\launcher.log` را ببینید؛ مطمئن شوید برنامه هست و کاربر لاگین کرده. |
+| «No executable auto-detected for …» | آن نرم‌افزار مسیر اجراییِ تمیزی ثبت نکرده است. | روی **Browse…** بزنید و فایل `.exe` واقعی را انتخاب کنید. |
+| شورتکات روی دسکتاپ **Public** ساخته شد | آن کاربر هرگز لاگین نکرده (هنوز پروفایل ندارد). | یک‌بار لاگین کند، یا روی Public بماند. |
+| هشدار: «executable is not under Program Files / Windows» | فایل `.exe` تفویض‌شده قابل‌نوشتن توسط کاربر است — می‌تواند جایگزین و با دسترسی ادمین اجرا شود. | قبل از تفویض، برنامه را در `Program Files` (فقط-ادمین) بگذارید. |

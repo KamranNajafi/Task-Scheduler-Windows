@@ -80,8 +80,18 @@ jobs:
           & $edge --headless=new --disable-gpu --no-sandbox --no-pdf-header-footer `
             "--user-data-dir=$profile" --run-all-compositor-stages-before-draw `
             --virtual-time-budget=15000 "--print-to-pdf=$pdf" $url
-          Start-Sleep -Seconds 2
-          if (-not (Test-Path $pdf)) { throw "PDF was not generated" }
+          # Edge writes the PDF asynchronously (a child process finishes after the
+          # launcher returns), so wait until the file appears and its size is stable.
+          $deadline = (Get-Date).AddSeconds(90); $prev = -1
+          while ((Get-Date) -lt $deadline) {
+            if (Test-Path $pdf) {
+              $sz = (Get-Item $pdf).Length
+              if ($sz -gt 0 -and $sz -eq $prev) { break }
+              $prev = $sz
+            }
+            Start-Sleep -Seconds 1
+          }
+          if (-not (Test-Path $pdf) -or (Get-Item $pdf).Length -le 0) { throw "PDF was not generated" }
           Get-ChildItem docs_out
 
       - name: Upload user guide PDF artifact
