@@ -30,6 +30,13 @@ software that needs admin rights, but cannot uninstall it or change anything.
 > **No prerequisites** — the installer uses the .NET Framework 4.8 built into
 > Windows 10/11.
 
+> **Updating & removing** — running a newer setup **removes the old version first,
+> then installs the new one** (your delegations are kept). To remove the program,
+> uninstall from **Control Panel ▸ Programs and Features** (or Settings ▸ Apps):
+> this now removes the app **and** everything it created — all delegations,
+> scheduled tasks, desktop shortcuts and `C:\ProgramData\AppDelegation`. Deleting
+> the install folder by hand does **not** clean up; always use the uninstaller.
+
 ### 3. Administrator — create a delegation
 1. Open **Task Delegator (Administrator)** (or run the app and click **Administrator…**)
    and approve **UAC**. This is the "admin login".
@@ -124,6 +131,13 @@ bar, and the **pop-up dialog boxes**. Red text means the action stopped and need
 
 > **بدون پیش‌نیاز** — نصب‌کننده از .NET Framework 4.8 که در ویندوز ۱۰/۱۱ توکار است
 > استفاده می‌کند.
+
+> **به‌روزرسانی و حذف** — اجرای یک ستاپِ جدیدتر **اول نسخهٔ قبلی را حذف و بعد نسخهٔ
+> جدید را نصب می‌کند** (تفویض‌های شما حفظ می‌شوند). برای حذفِ برنامه، از **Control
+> Panel ▸ Programs and Features** (یا Settings ▸ Apps) حذف (Uninstall) کنید: حالا این
+> کار برنامه را **به‌همراهِ** هر چیزی که ساخته — همهٔ تفویض‌ها، تسک‌های زمان‌بندی‌شده،
+> شورتکات‌های دسکتاپ و پوشهٔ `C:\ProgramData\AppDelegation` — پاک می‌کند. پاک‌کردنِ
+> دستیِ پوشهٔ نصب، تمیزکاری نمی‌کند؛ همیشه از Uninstall استفاده کنید.
 
 ### ۳. ادمین — ساخت یک تفویض (delegation)
 ۱. **Task Delegator (Administrator)** را باز کنید (یا برنامه را اجرا و روی

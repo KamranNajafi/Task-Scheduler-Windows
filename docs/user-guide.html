@@ -108,6 +108,12 @@
 </ol>
 <div class="note"><b>No prerequisites.</b> The installer uses the .NET Framework 4.8 that is
   built into Windows 10/11 — nothing else to install.</div>
+<div class="note"><b>Updating &amp; removing.</b> Running a newer setup <b>removes the old
+  version first, then installs the new one</b> (your delegations are kept). To remove the
+  program, uninstall from <b>Control Panel &#9656; Programs and Features</b> (or Settings &#9656;
+  Apps): this now removes the app <b>and</b> everything it created — all delegations, scheduled
+  tasks, desktop shortcuts and <code>C:\ProgramData\AppDelegation</code>. Deleting the install
+  folder by hand does <b>not</b> clean up; always use the uninstaller.</div>
 
 <h3>3. Administrator — create a delegation</h3>
 <ol>
@@ -388,6 +394,12 @@
 </ol>
 <div class="note"><b>بدون پیش‌نیاز.</b> نصب‌کننده از <b>.NET Framework 4.8</b> که در ویندوز
   ۱۰/۱۱ توکار است استفاده می‌کند — چیز دیگری لازم نیست نصب شود.</div>
+<div class="note"><b>به‌روزرسانی و حذف.</b> اجرای یک ستاپِ جدیدتر <b>اول نسخهٔ قبلی را حذف و
+  بعد نسخهٔ جدید را نصب می‌کند</b> (تفویض‌های شما حفظ می‌شوند). برای حذفِ برنامه از
+  <b>Control Panel &#9656; Programs and Features</b> (یا Settings &#9656; Apps) حذف (Uninstall)
+  کنید: حالا برنامه را <b>به‌همراهِ</b> هر چیزی که ساخته — همهٔ تفویض‌ها، تسک‌های
+  زمان‌بندی‌شده، شورتکات‌ها و پوشهٔ <code>C:\ProgramData\AppDelegation</code> — پاک می‌کند.
+  پاک‌کردنِ دستیِ پوشهٔ نصب تمیزکاری نمی‌کند؛ همیشه از Uninstall استفاده کنید.</div>
 
 <h3>۳. ادمین — ساخت یک تفویض (delegation)</h3>
 <ol>

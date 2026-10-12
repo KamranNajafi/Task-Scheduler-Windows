@@ -318,6 +318,60 @@ public static class DelegationManager
         AuditLog.Write($"REMOVED task={taskName}");
     }
 
+    // -------- complete removal (used by the installer's full uninstall) --------
+
+    /// <summary>
+    /// Removes EVERYTHING this app created: all delegations (scheduled tasks, descriptors,
+    /// credentials, menu entries, hidden .vbs launchers and desktop shortcuts), the Task
+    /// Scheduler folder itself, and the whole ProgramData data directory. Used by the
+    /// installer's uninstall so a Control-Panel uninstall leaves nothing behind.
+    /// Best-effort: never throws.
+    /// </summary>
+    public static void RemoveAll()
+    {
+        AuditLog.Write("UNINSTALL-CLEAN: removing all delegations and data");
+
+        foreach (var name in GetAllTaskNames())
+        {
+            try { Remove(name); } catch { /* keep going */ }
+        }
+
+        // Delete the (now-empty) Task Scheduler folder.
+        try
+        {
+            using var ts = new TaskService();
+            try { ts.RootFolder.DeleteFolder(Paths.TaskFolder, false); } catch { /* not empty or already gone */ }
+        }
+        catch { /* ignore */ }
+
+        // Finally remove the data directory (descriptors, creds, menu, logs, the installed
+        // exe copy, .vbs launchers). Do this last and write no log afterwards (the log lives
+        // inside this folder).
+        try { if (Directory.Exists(Paths.DataDir)) Directory.Delete(Paths.DataDir, recursive: true); }
+        catch { /* ignore locked files */ }
+    }
+
+    private static IEnumerable<string> GetAllTaskNames()
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            if (Directory.Exists(Paths.DelegationsDir))
+                foreach (var f in Directory.EnumerateFiles(Paths.DelegationsDir, "*.json"))
+                    names.Add(Path.GetFileNameWithoutExtension(f));
+        }
+        catch { /* ignore */ }
+        try
+        {
+            using var ts = new TaskService();
+            var folder = TryGetFolder(ts);
+            if (folder is not null)
+                foreach (var t in folder.Tasks) { try { names.Add(t.Name); } catch { /* skip */ } }
+        }
+        catch { /* ignore */ }
+        return names;
+    }
+
     // -------- helpers --------
 
     public static bool IsTrustedLocation(string exe)

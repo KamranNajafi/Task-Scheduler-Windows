@@ -199,6 +199,12 @@ after you move or delete the copy you ran. Actions are logged to
   and any error. The app must exist at the recorded path.
 - **SYSTEM vs Admin account.** SYSTEM mode needs no password and is simplest. If an
   app misbehaves under the SYSTEM profile, use **Admin account** mode.
+- **Updating & complete removal.** Running a newer `TaskDelegatorSetup.exe` removes the
+  old version first, then installs the new one (delegations are preserved). Uninstalling
+  from **Control Panel ▸ Programs and Features** removes the app **and** everything it
+  created — all delegations, scheduled tasks, desktop shortcuts and
+  `C:\ProgramData\AppDelegation`. Deleting the install folder by hand does **not** clean
+  up; always uninstall from Control Panel.
 - **SQL Server tools fail with "CREATE DATABASE permission denied" (Error 262).**
   A delegation runs as `NT AUTHORITY\SYSTEM`, which since SQL Server 2012 is not a
   `sysadmin` by default, so SSMS/`sqlcmd` can connect but can't create databases.

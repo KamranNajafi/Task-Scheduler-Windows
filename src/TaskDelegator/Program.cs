@@ -21,6 +21,15 @@ internal static class Program
         if (args.Length >= 2 && args[0].Equals("--launch", StringComparison.OrdinalIgnoreCase))
             return SessionLauncher.Run(args[1]);
 
+        // 1b) Full-uninstall cleanup: invoked by the installer's uninstaller
+        //     (TaskDelegator.exe --uninstall-clean). Removes every delegation, the Task
+        //     Scheduler folder, and the ProgramData data directory so nothing is left behind.
+        if (args.Length >= 1 && args[0].Equals("--uninstall-clean", StringComparison.OrdinalIgnoreCase))
+        {
+            try { DelegationManager.RemoveAll(); } catch { /* best effort */ }
+            return 0;
+        }
+
         // DPI awareness is set in code (not in the manifest) so the manifest stays
         // minimal and cannot cause a side-by-side activation error.
 #if NET8_0_OR_GREATER

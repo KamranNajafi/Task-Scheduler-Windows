@@ -62,3 +62,66 @@ Name: "{commondesktop}\Allowed Programs"; Filename: "{app}\{#AppExe}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#AppExe}"; Parameters: "--admin"; Description: "Open Task Delegator (Administrator) now"; Flags: postinstall nowait skipifsilent
+
+[Code]
+// Registry key Inno Setup writes for this product (AppId + "_is1").
+const
+  UninstallKey = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{B3F2A1C4-7E9D-4A52-9C3B-7F1E2D6A5B40}_is1';
+
+function GetUninstallString(): String;
+var
+  s: String;
+begin
+  Result := '';
+  if RegQueryStringValue(HKLM, UninstallKey, 'UninstallString', s) then
+    Result := s
+  else if RegQueryStringValue(HKLM64, UninstallKey, 'UninstallString', s) then
+    Result := s;
+end;
+
+// True when this run was started by a newer installer upgrading us (see PrepareToInstall).
+function UpgradeFlagPresent(): Boolean;
+var
+  i: Integer;
+begin
+  Result := False;
+  for i := 1 to ParamCount do
+    if CompareText(ParamStr(i), '/UPGRADEUNINSTALL') = 0 then
+    begin
+      Result := True;
+      Exit;
+    end;
+end;
+
+// Clean upgrade: silently remove any previously installed version BEFORE installing the
+// new one, so no old files are left behind. We pass /UPGRADEUNINSTALL so the old
+// uninstaller KEEPS the user's delegations (only a real uninstall wipes them).
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  unst: String;
+  rc: Integer;
+begin
+  Result := '';
+  unst := GetUninstallString();
+  if unst <> '' then
+  begin
+    unst := RemoveQuotes(unst);
+    Exec(unst, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /UPGRADEUNINSTALL', '',
+         SW_HIDE, ewWaitUntilTerminated, rc);
+  end;
+end;
+
+// Complete uninstall: on a genuine (user) uninstall, run the app's cleanup so every
+// delegation, the Task Scheduler folder, and C:\ProgramData\AppDelegation are removed —
+// nothing left behind. On an upgrade (/UPGRADEUNINSTALL) we keep the delegations.
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  rc: Integer;
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    if not UpgradeFlagPresent() then
+      Exec(ExpandConstant('{app}\{#AppExe}'), '--uninstall-clean', '',
+           SW_HIDE, ewWaitUntilTerminated, rc);
+  end;
+end;
