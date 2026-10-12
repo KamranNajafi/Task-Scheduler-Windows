@@ -199,6 +199,15 @@ after you move or delete the copy you ran. Actions are logged to
   and any error. The app must exist at the recorded path.
 - **SYSTEM vs Admin account.** SYSTEM mode needs no password and is simplest. If an
   app misbehaves under the SYSTEM profile, use **Admin account** mode.
+- **SQL Server tools fail with "CREATE DATABASE permission denied" (Error 262).**
+  A delegation runs as `NT AUTHORITY\SYSTEM`, which since SQL Server 2012 is not a
+  `sysadmin` by default, so SSMS/`sqlcmd` can connect but can't create databases.
+  Fix it once in any of these ways: (a) run the helper
+  **`tools/Grant-SqlCreateDatabase.ps1`** in an elevated PowerShell as a SQL
+  sysadmin — it grants the login the `dbcreator` (or `-Role sysadmin`) role on every
+  local instance; (b) run `ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];`
+  in SSMS; or (c) re-create the delegation in **Admin account** mode with a Windows
+  account that is a SQL Server administrator. Then reconnect in SSMS.
 - **"The application has failed to start because its side-by-side configuration is
   incorrect."** This is the self-contained **net8** `TaskDelegator.exe` missing the
   **Microsoft Visual C++ Redistributable (x64)** — common on clean / freshly-imaged
