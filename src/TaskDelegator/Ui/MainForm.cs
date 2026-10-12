@@ -19,6 +19,18 @@ public sealed class MainForm : Form
     private readonly TextBox _shortcut = new();
     private readonly RadioButton _modeSystem = new() { Text = "SYSTEM (no password)", Checked = true, AutoSize = true };
     private readonly RadioButton _modeAccount = new() { Text = "Admin account", AutoSize = true };
+    // Explains the identity trap behind SQL Server "CREATE DATABASE permission denied" (Error 262):
+    // SYSTEM mode runs the app AS NT AUTHORITY\SYSTEM, which Windows-authenticated services treat
+    // as a non-admin login. The full reason is in the hover tooltip set in BuildSettings().
+    private readonly Label _modeHint = new()
+    {
+        AutoSize = true,
+        ForeColor = Color.DimGray,
+        Margin = new Padding(2, 2, 0, 0),
+        Text = "SYSTEM runs the app as NT AUTHORITY\\SYSTEM. For SQL Server tools and similar, " +
+               "pick \"Admin account\" instead (hover for why)."
+    };
+    private readonly ToolTip _tips = new() { AutoPopDelay = 30000, InitialDelay = 350, ReshowDelay = 120, ShowAlways = true };
     private readonly TextBox _account = new();
     private readonly TextBox _password = new() { UseSystemPasswordChar = true };
     private readonly Label _accountLbl = new() { Text = "Account:", AutoSize = true };
@@ -39,8 +51,8 @@ public sealed class MainForm : Form
     {
         Text = $"Privileged App Delegation {AppInfo.Version} — Administrator console";
         Width = 920;
-        Height = 700;
-        MinimumSize = new Size(820, 640);
+        Height = 730;
+        MinimumSize = new Size(820, 672);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 9f);
 
@@ -150,7 +162,7 @@ public sealed class MainForm : Form
 
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2 };
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 252));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 286));
 
         var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Vertical };
 
@@ -205,9 +217,30 @@ public sealed class MainForm : Form
         _accountLbl.Anchor = AnchorStyles.Left;
         _passwordLbl.Anchor = AnchorStyles.Left;
 
-        var modeFlow = new FlowLayoutPanel { AutoSize = true, Margin = new Padding(0), FlowDirection = FlowDirection.LeftToRight };
-        modeFlow.Controls.Add(_modeSystem);
-        modeFlow.Controls.Add(_modeAccount);
+        var modeRow = new FlowLayoutPanel { AutoSize = true, Margin = new Padding(0), FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+        modeRow.Controls.Add(_modeSystem);
+        modeRow.Controls.Add(_modeAccount);
+
+        // Radios on top, a gray one-line hint underneath — all within the single "Run as" cell.
+        var modeFlow = new FlowLayoutPanel { AutoSize = true, Margin = new Padding(0), FlowDirection = FlowDirection.TopDown, WrapContents = false };
+        modeFlow.Controls.Add(modeRow);
+        modeFlow.Controls.Add(_modeHint);
+
+        string systemTip =
+            "SYSTEM (no password): the app runs as NT AUTHORITY\\SYSTEM.\r\n" +
+            "Apps that sign in to another service using your Windows identity — e.g. SQL Server\r\n" +
+            "Management Studio — then connect AS SYSTEM, which since SQL Server 2012 is NOT a\r\n" +
+            "sysadmin by default. That causes errors such as \"CREATE DATABASE permission denied\r\n" +
+            "in database 'master'\" (SQL Server Error 262).\r\n\r\n" +
+            "For those apps pick \"Admin account\" below and enter a Windows account that is a SQL\r\n" +
+            "Server administrator — or grant that login the needed rights inside SQL Server.";
+        _tips.SetToolTip(_modeSystem, systemTip);
+        _tips.SetToolTip(_modeHint, systemTip);
+        _tips.SetToolTip(_modeAccount,
+            "Admin account: the app runs as the Windows account you enter (its password is stored\r\n" +
+            "encrypted with DPAPI, readable only by SYSTEM / Administrators).\r\n" +
+            "Use this when the app must act as a specific privileged identity — e.g. a user who is\r\n" +
+            "a SQL Server administrator.");
 
         _create.Size = new Size(200, 30);
         _create.Anchor = AnchorStyles.Right;

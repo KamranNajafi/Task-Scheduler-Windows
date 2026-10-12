@@ -199,6 +199,23 @@
         replace it and run their own code elevated.</td>
     <td>Move the app to <code>Program&nbsp;Files</code> (admin-only) before delegating.</td>
   </tr>
+  <tr>
+    <td>"CREATE DATABASE permission denied in database 'master'" (SQL Server <b>Error&nbsp;262</b>) —
+        or similar permission errors — in <b>SQL Server Management Studio</b> / <code>sqlcmd</code>
+        opened through a delegation</td>
+    <td>The delegation uses <b>SYSTEM</b> mode, so the app runs as <b>NT&nbsp;AUTHORITY\SYSTEM</b>
+        (the SSMS <i>Connection</i> line shows <code>WORKGROUP\SYSTEM</code>). Since SQL&nbsp;Server&nbsp;2012,
+        SYSTEM is <b>not</b> a <code>sysadmin</code> by default — it can connect, but cannot
+        <code>CREATE DATABASE</code> or do other admin work. This is a SQL&nbsp;Server
+        login-permission issue, not a Task Delegator fault.</td>
+    <td>Re-create the delegation in <b>Admin account</b> mode with a Windows account that is a
+        SQL&nbsp;Server administrator (e.g. the account that installed SQL&nbsp;Server) —
+        <b>recommended</b>. Or, as a SQL sysadmin, grant the running login once:
+        <code>ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];</code>
+        (create-database only) or use <code>sysadmin</code> (full rights). Or, inside SSMS,
+        connect with <b>SQL&nbsp;Server Authentication</b> (a SQL login such as <code>sa</code>)
+        instead of Windows Authentication.</td>
+  </tr>
 </table>
 
 <h3>7. Messages the program shows (and what they mean)</h3>
@@ -444,6 +461,22 @@
     <td>فایل <code>.exe</code> تفویض‌شده در مسیری است که کاربر اجازهٔ نوشتن دارد — می‌تواند
         آن را با کد خودش جایگزین و با دسترسی ادمین اجرا کند.</td>
     <td>قبل از تفویض، برنامه را در <code>Program&nbsp;Files</code> (فقط-ادمین) قرار دهید.</td>
+  </tr>
+  <tr>
+    <td>«CREATE DATABASE permission denied in database 'master'» (خطای <b>۲۶۲</b> در SQL&nbsp;Server)
+        — یا خطاهای دسترسیِ مشابه — در <b>SQL Server Management Studio</b> / <code>sqlcmd</code>
+        که از طریق یک تفویض باز شده</td>
+    <td>تفویض در حالت <b>SYSTEM</b> است، پس برنامه با هویتِ <b>NT&nbsp;AUTHORITY\SYSTEM</b> اجرا
+        می‌شود (در SSMS خطِ <i>Connection</i> برابر <code>WORKGROUP\SYSTEM</code> است). از
+        SQL&nbsp;Server&nbsp;2012 به بعد، SYSTEM به‌طور پیش‌فرض <b>sysadmin نیست</b> — می‌تواند
+        متصل شود ولی نمی‌تواند <code>CREATE DATABASE</code> یا کارهای مدیریتیِ دیگر انجام دهد. این
+        یک مسئلهٔ دسترسیِ لاگین در SQL&nbsp;Server است، نه ایرادِ Task Delegator.</td>
+    <td>تفویض را در حالت <b>Admin account</b> و با یک حساب ویندوزی که در SQL&nbsp;Server ادمین است
+        بسازید (مثلاً حسابی که SQL&nbsp;Server را نصب کرده) — <b>پیشنهادی</b>. یا به‌عنوان sysadmin
+        یک‌بار به لاگینِ در حال اجرا دسترسی بدهید:
+        <code>ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];</code> (فقط ساخت
+        دیتابیس) یا <code>sysadmin</code> (دسترسی کامل). یا داخل SSMS به‌جای Windows Authentication
+        با <b>SQL&nbsp;Server Authentication</b> (مثلاً لاگین <code>sa</code>) وصل شوید.</td>
   </tr>
 </table>
 
