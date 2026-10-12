@@ -72,6 +72,7 @@ public sealed class MainForm : Form
     public MainForm()
     {
         Text = $"Privileged App Delegation {AppInfo.Version} — Administrator console";
+        try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { /* no icon is fine */ }
         Width = 920;
         Height = 730;
         MinimumSize = new Size(820, 672);

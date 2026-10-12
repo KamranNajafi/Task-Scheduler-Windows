@@ -30,6 +30,7 @@ public sealed class StudentLauncherForm : Form
     public StudentLauncherForm()
     {
         Text = $"Allowed Programs {AppInfo.Version}";
+        try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { /* no icon is fine */ }
         Width = 560;
         Height = 480;
         MinimumSize = new Size(440, 360);

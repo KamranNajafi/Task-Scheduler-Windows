@@ -11,6 +11,9 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>TaskDelegator</AssemblyName>
     <RootNamespace>TaskDelegator</RootNamespace>
+    <!-- Application icon embedded into the exe (shown on the file, window, taskbar and
+         shortcuts). The installer uses the same file via SetupIconFile. -->
+    <ApplicationIcon>app.ico</ApplicationIcon>
     <!-- No embedded Win32 manifest. An embedded application manifest caused a
          side-by-side activation error (CreateProcess code 14001,
          ERROR_SXS_CANT_GEN_ACTCTX) on some Windows installs; removing it fixes

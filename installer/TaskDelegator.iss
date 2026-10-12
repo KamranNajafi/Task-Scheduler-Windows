@@ -35,6 +35,7 @@ DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 OutputDir=..\installer_out
 OutputBaseFilename=TaskDelegatorSetup
+SetupIconFile=..\src\TaskDelegator\app.ico
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=admin
