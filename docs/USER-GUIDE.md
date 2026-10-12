@@ -56,6 +56,13 @@ software that needs admin rights, but cannot uninstall it or change anything.
 
 The launcher is **run-only**: no uninstall, remove, or settings action.
 
+> **Deploying to many PCs (Network tab).** The admin console's **Network** tab offers
+> three ways to roll the app out without visiting each machine: a **silent-install
+> command** + a ready **deploy `.bat`** (for PsExec / PDQ / USB / login scripts), a
+> **Group Policy** computer-startup script (installs/updates from a share when the
+> version changes), and a **workgroup push** that remotely installs to a list of PCs
+> sharing the same local-admin account.
+
 ### 5. Security notes
 - Delegating an app is like granting `sudo` on it — **only delegate trusted,
   single-purpose apps**.
@@ -157,6 +164,12 @@ bar, and the **pop-up dialog boxes**. Red text means the action stopped and need
 ۲. روی یک برنامه دابل‌کلیک کنید — **با دسترسی ادمین و روی دسکتاپ خودتان** اجرا می‌شود.
 
 این پنجره **فقط-اجرا** است: هیچ گزینهٔ حذف/uninstall یا تنظیماتی ندارد.
+
+> **نصبِ گروهی روی چندین سیستم (تبِ Network).** تبِ **Network** در کنسولِ ادمین سه راه برای
+> پخشِ برنامه بدونِ مراجعه به تک‌تکِ سیستم‌ها می‌دهد: یک **دستورِ نصبِ بی‌صدا** و یک
+> **اسکریپتِ `.bat`** آماده (برای PsExec / PDQ / USB / login script)، یک اسکریپتِ **Group
+> Policy** (نصب/آپدیت از روی یک share هنگام تغییرِ ورژن)، و یک **push در Workgroup** که از
+> راه دور روی لیستی از سیستم‌هایی که ادمینِ لوکالِ یکسان دارند نصب می‌کند.
 
 ### ۵. نکات امنیتی
 - تفویض یک نرم‌افزار مثل دادن `sudo` روی آن است — **فقط نرم‌افزارهای مورد اعتماد و

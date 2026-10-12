@@ -199,6 +199,10 @@ after you move or delete the copy you ran. Actions are logged to
   and any error. The app must exist at the recorded path.
 - **SYSTEM vs Admin account.** SYSTEM mode needs no password and is simplest. If an
   app misbehaves under the SYSTEM profile, use **Admin account** mode.
+- **Deploying to many PCs.** The admin console's **Network** tab gives a silent-install
+  command + a ready deploy `.bat`, a **Group Policy** computer-startup script (installs
+  from a share when the version changes), and a **workgroup push** that remotely installs
+  to a list of PCs sharing the same local-admin account.
 - **Updating & complete removal.** Running a newer `TaskDelegatorSetup.exe` removes the
   old version first, then installs the new one (delegations are preserved). Uninstalling
   from **Control Panel ▸ Programs and Features** removes the app **and** everything it

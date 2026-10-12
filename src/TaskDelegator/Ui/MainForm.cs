@@ -51,6 +51,20 @@ public sealed class MainForm : Form
     private readonly Button _sqlApply = new() { Text = "Apply fix" };
     private readonly Button _openDataFolder = new() { Text = "Open log && data folder" };
 
+    // "Network" tab — deploy to many PCs without visiting each one.
+    private readonly TextBox _netCmd = new() { ReadOnly = true };
+    private readonly Button _netCopyCmd = new() { Text = "Copy command" };
+    private readonly Button _netSaveBat = new() { Text = "Save deploy .bat…" };
+    private readonly TextBox _gpoUnc = new() { Text = "\\\\SERVER\\share\\TaskDelegatorSetup.exe" };
+    private readonly Button _gpoSave = new() { Text = "Save GPO startup script…" };
+    private readonly TextBox _pushUser = new();
+    private readonly TextBox _pushPass = new() { UseSystemPasswordChar = true };
+    private readonly TextBox _pushInstaller = new();
+    private readonly Button _pushBrowse = new() { Text = "Browse…" };
+    private readonly TextBox _pushMachines = new() { Multiline = true, ScrollBars = ScrollBars.Vertical };
+    private readonly Button _pushDeploy = new() { Text = "Deploy to all" };
+    private readonly TextBox _pushResults = new() { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical };
+
     private readonly Label _status = new() { Text = "", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8, 0, 8, 0) };
 
     private List<InstalledApp> _allApps = new();
@@ -80,6 +94,11 @@ public sealed class MainForm : Form
         _remove.Click += OnRemove;
         _sqlApply.Click += OnApplySqlFix;
         _openDataFolder.Click += (_, _) => OpenDataFolder();
+        _netCopyCmd.Click += (_, _) => CopyText(_netCmd.Text);
+        _netSaveBat.Click += (_, _) => SaveTextFile("TaskDelegator-deploy.bat", NetworkDeploy.DeployBatch(""));
+        _gpoSave.Click += (_, _) => SaveTextFile("TaskDelegator-gpo-startup.bat", NetworkDeploy.GpoStartupScript(_gpoUnc.Text, AppInfo.Version));
+        _pushBrowse.Click += OnBrowseInstaller;
+        _pushDeploy.Click += OnDeployPush;
     }
 
     // ---------- layout ----------
@@ -164,6 +183,7 @@ public sealed class MainForm : Form
         tabs.TabPages.Add(BuildCreateTab());
         tabs.TabPages.Add(BuildManageTab());
         tabs.TabPages.Add(BuildToolsTab());
+        tabs.TabPages.Add(BuildNetworkTab());
         return tabs;
     }
 
@@ -397,6 +417,99 @@ public sealed class MainForm : Form
         _openDataFolder.FlatStyle = FlatStyle.System;
         diag.Controls.Add(_openDataFolder);
         root.Controls.Add(diag);
+
+        page.Controls.Add(root);
+        return page;
+    }
+
+    private TabPage BuildNetworkTab()
+    {
+        var page = new TabPage("Network") { Padding = new Padding(10) };
+        var root = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true };
+
+        // 1) Universal silent command + batch.
+        var g1 = new GroupBox { Text = "1. Silent install command  (PsExec / PDQ / USB / login script)", AutoSize = true, Width = 820, Padding = new Padding(10) };
+        var p1 = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Dock = DockStyle.Top };
+        p1.Controls.Add(new Label { Text = "Run as administrator on each PC, with the installer in the same folder (or give a full/UNC path).", AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(0, 0, 0, 4) });
+        _netCmd.Width = 770;
+        _netCmd.Font = new Font("Consolas", 9.5f);
+        _netCmd.Text = NetworkDeploy.SilentCommand("TaskDelegatorSetup.exe");
+        p1.Controls.Add(_netCmd);
+        var b1 = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0, 6, 0, 0) };
+        _netCopyCmd.Width = 130; _netSaveBat.Width = 170;
+        b1.Controls.Add(_netCopyCmd);
+        b1.Controls.Add(_netSaveBat);
+        p1.Controls.Add(b1);
+        g1.Controls.Add(p1);
+        root.Controls.Add(g1);
+
+        // 2) Group Policy.
+        var g2 = new GroupBox { Text = "2. Group Policy (Active Directory) — computer startup script", AutoSize = true, Width = 820, Padding = new Padding(10), Margin = new Padding(0, 12, 0, 0) };
+        var p2 = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Top };
+        p2.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        p2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        var gpoInfo = new Label
+        {
+            Text = "Put the installer on a share every PC can read, then add the saved script under\n" +
+                   "Computer Configuration ▸ Policies ▸ Windows Settings ▸ Scripts ▸ Startup.\n" +
+                   "It installs/updates only when the version changes.",
+            AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(0, 0, 0, 8)
+        };
+        p2.Controls.Add(gpoInfo, 0, 0); p2.SetColumnSpan(gpoInfo, 2);
+        _gpoUnc.Dock = DockStyle.Fill;
+        p2.Controls.Add(new Label { Text = "Installer UNC path:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 1);
+        p2.Controls.Add(_gpoUnc, 1, 1);
+        _gpoSave.Width = 230; _gpoSave.Margin = new Padding(3, 8, 3, 3);
+        p2.Controls.Add(_gpoSave, 1, 2);
+        g2.Controls.Add(p2);
+        root.Controls.Add(g2);
+
+        // 3) Workgroup push.
+        var g3 = new GroupBox { Text = "3. Workgroup push (no domain) — advanced", AutoSize = true, Width = 820, Padding = new Padding(10), Margin = new Padding(0, 12, 0, 12) };
+        var p3 = new TableLayoutPanel { ColumnCount = 4, AutoSize = true, Dock = DockStyle.Top };
+        p3.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        p3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        p3.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        p3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        var pushInfo = new Label
+        {
+            Text = "Remotely installs to PCs that share the SAME local-admin account. Requires File & Printer\n" +
+                   "Sharing (admin$) reachable and the firewall to allow it. Credentials are used once, not saved.\n" +
+                   "Test on ONE PC first.",
+            AutoSize = true, ForeColor = Color.Firebrick, Margin = new Padding(0, 0, 0, 8)
+        };
+        p3.Controls.Add(pushInfo, 0, 0); p3.SetColumnSpan(pushInfo, 4);
+
+        _pushUser.Dock = DockStyle.Fill; _pushPass.Dock = DockStyle.Fill;
+        p3.Controls.Add(new Label { Text = "Admin user:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 1);
+        p3.Controls.Add(_pushUser, 1, 1);
+        p3.Controls.Add(new Label { Text = "Password:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 2, 1);
+        p3.Controls.Add(_pushPass, 3, 1);
+
+        _pushInstaller.Dock = DockStyle.Fill;
+        p3.Controls.Add(new Label { Text = "Installer (.exe):", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 2);
+        p3.Controls.Add(_pushInstaller, 1, 2); p3.SetColumnSpan(_pushInstaller, 2);
+        _pushBrowse.Width = 90;
+        p3.Controls.Add(_pushBrowse, 3, 2);
+
+        p3.Controls.Add(new Label { Text = "Machines:", AutoSize = true, Anchor = AnchorStyles.Left | AnchorStyles.Top, Margin = new Padding(3, 6, 8, 3) }, 0, 3);
+        _pushMachines.Width = 560; _pushMachines.Height = 80; _pushMachines.Font = new Font("Consolas", 9.5f);
+        p3.Controls.Add(_pushMachines, 1, 3); p3.SetColumnSpan(_pushMachines, 3);
+        p3.Controls.Add(new Label { Text = "(one host/IP per line; a range like 192.168.1.10-40 is expanded)", AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(3, 2, 3, 6) }, 1, 4);
+        p3.SetColumnSpan(p3.GetControlFromPosition(1, 4), 3);
+
+        _pushDeploy.Width = 160; _pushDeploy.Height = 30;
+        _pushDeploy.BackColor = Accent; _pushDeploy.ForeColor = Color.White; _pushDeploy.FlatStyle = FlatStyle.Flat;
+        _pushDeploy.Font = new Font("Segoe UI Semibold", 9.5f, FontStyle.Bold);
+        _pushDeploy.Margin = new Padding(3, 8, 3, 3);
+        p3.Controls.Add(_pushDeploy, 1, 5);
+
+        p3.Controls.Add(new Label { Text = "Results:", AutoSize = true, Anchor = AnchorStyles.Left | AnchorStyles.Top, Margin = new Padding(3, 6, 8, 3) }, 0, 6);
+        _pushResults.Width = 560; _pushResults.Height = 120; _pushResults.Font = new Font("Consolas", 9f);
+        p3.Controls.Add(_pushResults, 1, 6); p3.SetColumnSpan(_pushResults, 3);
+
+        g3.Controls.Add(p3);
+        root.Controls.Add(g3);
 
         page.Controls.Add(root);
         return page;
@@ -676,6 +789,79 @@ public sealed class MainForm : Form
             Process.Start(new ProcessStartInfo(Paths.DataDir) { UseShellExecute = true });
         }
         catch (Exception ex) { SetStatus("Could not open folder: " + ex.Message, true); }
+    }
+
+    // ---------- Network tab ----------
+
+    private void CopyText(string text)
+    {
+        try { if (!string.IsNullOrEmpty(text)) { Clipboard.SetText(text); SetStatus("Copied to clipboard."); } }
+        catch { /* clipboard busy — ignore */ }
+    }
+
+    private void SaveTextFile(string suggestedName, string content)
+    {
+        using var dlg = new SaveFileDialog { FileName = suggestedName, Filter = "Batch script (*.bat)|*.bat|All files (*.*)|*.*" };
+        if (dlg.ShowDialog(this) != DialogResult.OK) return;
+        try
+        {
+            File.WriteAllText(dlg.FileName, content, new System.Text.UTF8Encoding(false));
+            SetStatus("Saved " + dlg.FileName);
+        }
+        catch (Exception ex) { SetStatus("Could not save: " + ex.Message, true); }
+    }
+
+    private void OnBrowseInstaller(object? sender, EventArgs e)
+    {
+        using var dlg = new OpenFileDialog { Filter = "Installer (*.exe)|*.exe|All files (*.*)|*.*" };
+        if (dlg.ShowDialog(this) == DialogResult.OK) _pushInstaller.Text = dlg.FileName;
+    }
+
+    private async void OnDeployPush(object? sender, EventArgs e)
+    {
+        string user = _pushUser.Text.Trim();
+        string pass = _pushPass.Text;
+        string installer = _pushInstaller.Text.Trim();
+        var machines = NetworkDeploy.ExpandMachines(_pushMachines.Text);
+
+        if (user.Length == 0 || pass.Length == 0) { SetStatus("Enter the shared admin user and password.", true); return; }
+        if (installer.Length == 0 || !File.Exists(installer)) { SetStatus("Choose the installer .exe to push (Browse…).", true); return; }
+        if (machines.Count == 0) { SetStatus("Enter at least one machine.", true); return; }
+
+        var confirm = MessageBox.Show(this,
+            $"Push and silently install on {machines.Count} machine(s)?\n\n" +
+            "Each target must be reachable with File & Printer Sharing (admin$) and the same " +
+            "admin credentials. It's best to test on one machine first.",
+            Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        if (confirm != DialogResult.Yes) return;
+
+        _pushDeploy.Enabled = false;
+        _pushResults.Clear();
+        AppendResult($"Deploying to {machines.Count} machine(s)…\r\n");
+        AuditLog.Write($"NETWORK PUSH to {machines.Count} machine(s) as '{user}' installer='{installer}'");
+        try
+        {
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                foreach (var host in machines)
+                {
+                    string line;
+                    try { line = NetworkDeploy.PushToHost(host, user, pass, installer); }
+                    catch (Exception ex) { line = "error — " + ex.Message; }
+                    AppendResult($"{host}: {line}\r\n");
+                }
+            });
+            AppendResult("Done.\r\n");
+            SetStatus("Network push finished — see the Results box.");
+        }
+        catch (Exception ex) { SetStatus("Push error: " + ex.Message, true); }
+        finally { _pushDeploy.Enabled = true; }
+    }
+
+    private void AppendResult(string text)
+    {
+        if (_pushResults.InvokeRequired) { _pushResults.BeginInvoke(new Action(() => _pushResults.AppendText(text))); return; }
+        _pushResults.AppendText(text);
     }
 
     // The Executable box may receive a path copied from the registry, a shortcut's

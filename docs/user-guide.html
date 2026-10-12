@@ -141,6 +141,13 @@
 </ol>
 <p>The launcher is <b>run-only</b>: there is no uninstall, remove, or settings action.</p>
 
+<div class="note"><b>Deploying to many PCs (Network tab).</b> The admin console's <b>Network</b>
+  tab offers three ways to roll the app out without visiting each machine: a
+  <b>silent-install command</b> + a ready <b>deploy <code>.bat</code></b> (for PsExec / PDQ /
+  USB / login scripts), a <b>Group Policy</b> computer-startup script (installs/updates from a
+  share when the version changes), and a <b>workgroup push</b> that remotely installs to a list
+  of PCs sharing the same local-admin account.</div>
+
 <h3>5. Security notes</h3>
 <ul>
   <li>Delegating an application is like granting <code>sudo</code> on it —
@@ -425,6 +432,13 @@
   <li>روی یک برنامه دابل‌کلیک کنید — <b>با دسترسی ادمین و روی دسکتاپ خودتان</b> اجرا می‌شود.</li>
 </ol>
 <p>این پنجره <b>فقط-اجرا</b> است: هیچ گزینهٔ حذف/uninstall یا تنظیماتی ندارد.</p>
+
+<div class="note"><b>نصبِ گروهی روی چندین سیستم (تبِ Network).</b> تبِ <b>Network</b> در کنسولِ
+  ادمین سه راه برای پخشِ برنامه بدونِ مراجعه به تک‌تکِ سیستم‌ها می‌دهد: یک <b>دستورِ نصبِ
+  بی‌صدا</b> و یک <b>اسکریپتِ <code>.bat</code></b> آماده (برای PsExec / PDQ / USB / login
+  script)، یک اسکریپتِ <b>Group Policy</b> (نصب/آپدیت از روی یک share هنگام تغییرِ ورژن)، و یک
+  <b>push در Workgroup</b> که از راه دور روی لیستی از سیستم‌هایی که ادمینِ لوکالِ یکسان دارند
+  نصب می‌کند.</div>
 
 <h3>۵. نکات امنیتی</h3>
 <ul>
