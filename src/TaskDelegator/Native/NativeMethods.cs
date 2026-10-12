@@ -270,6 +270,42 @@ internal static class NativeMethods
         return IntPtr.Zero;
     }
 
+    /// <summary>
+    /// True if the PE image is a GUI-subsystem app (IMAGE_SUBSYSTEM_WINDOWS_GUI = 2),
+    /// false only if it is explicitly a console app (IMAGE_SUBSYSTEM_WINDOWS_CUI = 3).
+    /// GUI apps must NOT be started with CREATE_NEW_CONSOLE — that would allocate an
+    /// empty black console window that sits in front of the app and looks like it hung.
+    /// Defaults to GUI (true) when the header can't be read, since this tool delegates
+    /// GUI apps and that default avoids the stray console.
+    /// </summary>
+    public static bool IsGuiExecutable(string path)
+    {
+        try
+        {
+            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var br = new BinaryReader(fs);
+            if (fs.Length < 0x40) return true;
+
+            fs.Position = 0x3C;                     // DOS header: e_lfanew (offset to PE header)
+            int peOffset = br.ReadInt32();
+            if (peOffset <= 0 || peOffset + 4 > fs.Length) return true;
+
+            fs.Position = peOffset;
+            if (br.ReadUInt32() != 0x00004550) return true;   // "PE\0\0" signature
+
+            // Optional header starts at peOffset + 4 (sig) + 20 (COFF header); the Subsystem
+            // field sits 68 bytes into it in both PE32 and PE32+ => peOffset + 92.
+            long subsystemPos = (long)peOffset + 92;
+            if (subsystemPos + 2 > fs.Length) return true;
+            fs.Position = subsystemPos;
+            ushort subsystem = br.ReadUInt16();
+
+            const ushort IMAGE_SUBSYSTEM_WINDOWS_CUI = 3;
+            return subsystem != IMAGE_SUBSYSTEM_WINDOWS_CUI;   // console app => false; anything else => treat as GUI
+        }
+        catch { return true; }
+    }
+
     /// <summary>Launch the process in the given session using the given elevated primary token.</summary>
     public static bool LaunchInSession(uint sessionId, IntPtr primaryToken, string app, string? args, string? workDir, out string error)
     {
@@ -293,8 +329,15 @@ internal static class NativeMethods
         cmd.Append('"').Append(app).Append('"');
         if (!string.IsNullOrWhiteSpace(args)) cmd.Append(' ').Append(args);
 
+        // Only give a console (CREATE_NEW_CONSOLE) to a real console app. For a GUI app
+        // that flag pops an empty black console window that looks like the app has hung —
+        // the cause of the "black window appears and it freezes" report with SSMS etc.
+        bool gui = IsGuiExecutable(app);
+        uint creationFlags = CREATE_UNICODE_ENVIRONMENT | (gui ? 0u : CREATE_NEW_CONSOLE);
+        error += gui ? "subsystem=GUI; " : "subsystem=console; ";
+
         bool ok = CreateProcessAsUser(primaryToken, app, cmd, IntPtr.Zero, IntPtr.Zero, false,
-            CREATE_UNICODE_ENVIRONMENT | CREATE_NEW_CONSOLE, env, workDir, ref si, out PROCESS_INFORMATION pi);
+            creationFlags, env, workDir, ref si, out PROCESS_INFORMATION pi);
 
         if (!ok) error += "CreateProcessAsUser failed (" + Marshal.GetLastWin32Error() + ")";
         else { CloseHandle(pi.hProcess); CloseHandle(pi.hThread); }

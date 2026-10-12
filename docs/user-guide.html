@@ -216,6 +216,15 @@
         connect with <b>SQL&nbsp;Server Authentication</b> (a SQL login such as <code>sa</code>)
         instead of Windows Authentication.</td>
   </tr>
+  <tr>
+    <td>A <b>black (console) window</b> opens in front of the delegated app and it looks
+        frozen / hung</td>
+    <td>Older builds started every delegated app with a <i>new console</i>. For a GUI app
+        (e.g. SSMS) that pops an empty black console window that sits in front of the app and
+        looks like a hang.</td>
+    <td>Update to <b>v1.8.1 or later</b> — the launcher now gives a console only to real
+        console apps, so GUI apps open with no black window.</td>
+  </tr>
 </table>
 
 <h3>7. Messages the program shows (and what they mean)</h3>
@@ -477,6 +486,14 @@
         <code>ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];</code> (فقط ساخت
         دیتابیس) یا <code>sysadmin</code> (دسترسی کامل). یا داخل SSMS به‌جای Windows Authentication
         با <b>SQL&nbsp;Server Authentication</b> (مثلاً لاگین <code>sa</code>) وصل شوید.</td>
+  </tr>
+  <tr>
+    <td>یک <b>پنجرهٔ مشکی (کنسول)</b> جلوی برنامهٔ تفویض‌شده باز می‌شود و انگار هنگ کرده است</td>
+    <td>نسخه‌های قبلی هر برنامهٔ تفویض‌شده را با یک <i>کنسول جدید</i> اجرا می‌کردند. برای یک
+        برنامهٔ گرافیکی (مثل SSMS) این کار یک پنجرهٔ کنسولِ خالیِ مشکی جلوی برنامه می‌آورد که مثل
+        هنگ‌کردن به‌نظر می‌رسد.</td>
+    <td>به <b>نسخهٔ v1.8.1 یا بالاتر</b> به‌روزرسانی کنید — حالا فقط برنامه‌های واقعاً کنسولی
+        کنسول می‌گیرند، پس برنامه‌های گرافیکی بدون پنجرهٔ مشکی باز می‌شوند.</td>
   </tr>
 </table>
 
