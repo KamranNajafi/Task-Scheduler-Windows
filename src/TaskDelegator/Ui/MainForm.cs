@@ -43,6 +43,14 @@ public sealed class MainForm : Form
     private readonly Button _refresh = new() { Text = "Refresh" };
     private readonly Button _remove = new() { Text = "Remove selected" };
 
+    // "Fixes" tab — one-click solutions so admins don't have to type commands.
+    private readonly TextBox _sqlLogin = new() { Text = "NT AUTHORITY\\SYSTEM" };
+    private readonly RadioButton _sqlRoleDbcreator = new() { Text = "Create databases only (dbcreator)", Checked = true, AutoSize = true };
+    private readonly RadioButton _sqlRoleSysadmin = new() { Text = "Full admin (sysadmin)", AutoSize = true };
+    private readonly TextBox _sqlInstance = new();
+    private readonly Button _sqlApply = new() { Text = "Apply fix" };
+    private readonly Button _openDataFolder = new() { Text = "Open log && data folder" };
+
     private readonly Label _status = new() { Text = "", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8, 0, 8, 0) };
 
     private List<InstalledApp> _allApps = new();
@@ -70,6 +78,8 @@ public sealed class MainForm : Form
         _create.Click += OnCreate;
         _refresh.Click += (_, _) => RefreshDelegations();
         _remove.Click += OnRemove;
+        _sqlApply.Click += OnApplySqlFix;
+        _openDataFolder.Click += (_, _) => OpenDataFolder();
     }
 
     // ---------- layout ----------
@@ -153,6 +163,7 @@ public sealed class MainForm : Form
         var tabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(14, 6) };
         tabs.TabPages.Add(BuildCreateTab());
         tabs.TabPages.Add(BuildManageTab());
+        tabs.TabPages.Add(BuildToolsTab());
         return tabs;
     }
 
@@ -306,6 +317,88 @@ public sealed class MainForm : Form
 
         page.Controls.Add(_delegations);
         page.Controls.Add(buttons);
+        return page;
+    }
+
+    private TabPage BuildToolsTab()
+    {
+        var page = new TabPage("Fixes") { Padding = new Padding(10) };
+        var root = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.TopDown,
+            WrapContents = false,
+            AutoScroll = true
+        };
+
+        // --- SQL Server: fix Error 262 (CREATE DATABASE permission denied) ---
+        var sql = new GroupBox
+        {
+            Text = "SQL Server — allow database creation (fix Error 262)",
+            AutoSize = true,
+            Width = 820,
+            Padding = new Padding(10)
+        };
+        var t = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Top };
+        t.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+        var info = new Label
+        {
+            Text = "A delegated SQL tool runs as NT AUTHORITY\\SYSTEM, which by default cannot create\n" +
+                   "databases (Error 262). This grants that account the right on the local SQL Server\n" +
+                   "instance(s). Run it once as a SQL administrator (normally the account that installed\n" +
+                   "SQL Server). Afterwards, reconnect in SSMS for it to take effect.",
+            AutoSize = true,
+            ForeColor = Color.DimGray,
+            Margin = new Padding(0, 0, 0, 8)
+        };
+        t.Controls.Add(info, 0, 0);
+        t.SetColumnSpan(info, 2);
+
+        _sqlLogin.Dock = DockStyle.Fill;
+        _sqlInstance.Dock = DockStyle.Fill;
+        t.Controls.Add(new Label { Text = "Windows account:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 1);
+        t.Controls.Add(_sqlLogin, 1, 1);
+
+        var roles = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0), WrapContents = false };
+        roles.Controls.Add(_sqlRoleDbcreator);
+        roles.Controls.Add(_sqlRoleSysadmin);
+        t.Controls.Add(new Label { Text = "Permission:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 2);
+        t.Controls.Add(roles, 1, 2);
+
+        t.Controls.Add(new Label { Text = "Instance:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 3);
+        t.Controls.Add(new Label { Text = "(leave empty = all local instances; or type e.g.  .\\SQLEXPRESS )", AutoSize = true, ForeColor = Color.DimGray, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 3, 1) }, 1, 3);
+        t.Controls.Add(_sqlInstance, 1, 4);
+
+        _sqlApply.Width = 160;
+        _sqlApply.Height = 30;
+        _sqlApply.BackColor = Accent;
+        _sqlApply.ForeColor = Color.White;
+        _sqlApply.FlatStyle = FlatStyle.Flat;
+        _sqlApply.Font = new Font("Segoe UI Semibold", 9.5f, FontStyle.Bold);
+        _sqlApply.Margin = new Padding(3, 10, 3, 3);
+        t.Controls.Add(_sqlApply, 1, 5);
+
+        sql.Controls.Add(t);
+        root.Controls.Add(sql);
+
+        // --- Diagnostics ---
+        var diag = new GroupBox
+        {
+            Text = "Diagnostics",
+            AutoSize = true,
+            Width = 820,
+            Padding = new Padding(10),
+            Margin = new Padding(0, 12, 0, 0)
+        };
+        _openDataFolder.Width = 230;
+        _openDataFolder.Height = 28;
+        _openDataFolder.FlatStyle = FlatStyle.System;
+        diag.Controls.Add(_openDataFolder);
+        root.Controls.Add(diag);
+
+        page.Controls.Add(root);
         return page;
     }
 
@@ -487,6 +580,102 @@ public sealed class MainForm : Form
             SetStatus($"Removed '{task}'.");
         }
         catch (Exception ex) { SetStatus("Remove failed: " + ex.Message, true); }
+    }
+
+    // ---------- Fixes tab ----------
+
+    private void OnApplySqlFix(object? sender, EventArgs e)
+    {
+        string login = _sqlLogin.Text.Trim();
+        string role = _sqlRoleSysadmin.Checked ? "sysadmin" : "dbcreator";
+        string? inst = _sqlInstance.Text.Trim();
+        if (inst.Length == 0) inst = null;
+
+        if (role == "sysadmin")
+        {
+            var c = MessageBox.Show(this,
+                "Granting 'sysadmin' gives that account FULL control of SQL Server — any process " +
+                "running as it gets complete admin rights. 'Create databases only (dbcreator)' is the " +
+                "safer choice.\n\nContinue with sysadmin?",
+                Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (c != DialogResult.Yes) return;
+        }
+
+        Cursor = Cursors.WaitCursor;
+        SetStatus("Applying SQL Server fix…");
+        try
+        {
+            var r = SqlServerFix.ApplyGrant(login, role, inst);
+            AuditLog.Write($"SQLFIX login='{login}' role={role} instance='{inst ?? "(all)"}' ok={r.AnySuccess} fail={r.AnyFailure}");
+
+            if (r.SqlcmdMissing || r.NoInstances)
+            {
+                ShowTsqlDialog(r.Report, r.Tsql);
+                SetStatus(r.NoInstances ? "No local SQL Server instance found — showed the manual steps."
+                                        : "sqlcmd not found — showed the manual steps.", true);
+                return;
+            }
+
+            var icon = r.AnyFailure ? (r.AnySuccess ? MessageBoxIcon.Warning : MessageBoxIcon.Error) : MessageBoxIcon.Information;
+            MessageBox.Show(this, r.Report, Text, MessageBoxButtons.OK, icon);
+            SetStatus(
+                r.AnyFailure ? (r.AnySuccess ? "SQL Server fix applied with some errors (see details)." : "SQL Server fix failed (see details).")
+                             : "SQL Server fix applied. Disconnect/reconnect in SSMS, then try again.",
+                r.AnyFailure && !r.AnySuccess);
+        }
+        catch (Exception ex)
+        {
+            SetStatus("SQL fix error: " + ex.Message, true);
+            MessageBox.Show(this, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally { Cursor = Cursors.Default; }
+    }
+
+    // Fallback when the fix can't be applied automatically (no sqlcmd / no local instance):
+    // show the exact T-SQL so the admin can paste it into SSMS.
+    private void ShowTsqlDialog(string message, string tsql)
+    {
+        using var dlg = new Form
+        {
+            Text = Text,
+            Width = 660,
+            Height = 380,
+            StartPosition = FormStartPosition.CenterParent,
+            MinimizeBox = false,
+            MaximizeBox = false,
+            FormBorderStyle = FormBorderStyle.FixedDialog
+        };
+        var msg = new Label { Text = message, Dock = DockStyle.Top, AutoSize = false, Height = 84, Padding = new Padding(10, 10, 10, 0) };
+        var box = new TextBox
+        {
+            Multiline = true,
+            ReadOnly = true,
+            ScrollBars = ScrollBars.Vertical,
+            Dock = DockStyle.Fill,
+            Text = tsql,
+            Font = new Font("Consolas", 10f)
+        };
+        var bar = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 46, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(8) };
+        var close = new Button { Text = "Close", Width = 90, Height = 28, DialogResult = DialogResult.OK };
+        var copy = new Button { Text = "Copy T-SQL", Width = 120, Height = 28 };
+        copy.Click += (_, _) => { try { Clipboard.SetText(tsql); SetStatus("T-SQL copied to clipboard."); } catch { } };
+        bar.Controls.Add(close);
+        bar.Controls.Add(copy);
+        dlg.Controls.Add(box);
+        dlg.Controls.Add(bar);
+        dlg.Controls.Add(msg);
+        dlg.AcceptButton = close;
+        dlg.ShowDialog(this);
+    }
+
+    private void OpenDataFolder()
+    {
+        try
+        {
+            Paths.EnsureDirectories();
+            Process.Start(new ProcessStartInfo(Paths.DataDir) { UseShellExecute = true });
+        }
+        catch (Exception ex) { SetStatus("Could not open folder: " + ex.Message, true); }
     }
 
     // The Executable box may receive a path copied from the registry, a shortcut's

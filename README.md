@@ -202,11 +202,12 @@ after you move or delete the copy you ran. Actions are logged to
 - **SQL Server tools fail with "CREATE DATABASE permission denied" (Error 262).**
   A delegation runs as `NT AUTHORITY\SYSTEM`, which since SQL Server 2012 is not a
   `sysadmin` by default, so SSMS/`sqlcmd` can connect but can't create databases.
-  Fix it once in any of these ways: (a) run the helper
+  Fix it once in any of these ways: (a) **easiest —** open the admin console's
+  **Fixes** tab and click **Apply fix** (one click, no commands); (b) run the helper
   **`tools/Grant-SqlCreateDatabase.ps1`** in an elevated PowerShell as a SQL
   sysadmin — it grants the login the `dbcreator` (or `-Role sysadmin`) role on every
-  local instance; (b) run `ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];`
-  in SSMS; or (c) re-create the delegation in **Admin account** mode with a Windows
+  local instance; (c) run `ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];`
+  in SSMS; or (d) re-create the delegation in **Admin account** mode with a Windows
   account that is a SQL Server administrator. Then reconnect in SSMS.
 - **"The application has failed to start because its side-by-side configuration is
   incorrect."** This is the self-contained **net8** `TaskDelegator.exe` missing the

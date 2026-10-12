@@ -214,9 +214,10 @@
         <code>ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];</code>
         (create-database only) or use <code>sysadmin</code> (full rights). Or, inside SSMS,
         connect with <b>SQL&nbsp;Server Authentication</b> (a SQL login such as <code>sa</code>)
-        instead of Windows Authentication. <b>Shortcut:</b> run
-        <code>tools/Grant-SqlCreateDatabase.ps1</code> (elevated, as a SQL sysadmin) — it does
-        the grant on every local instance for you. After granting, <b>reconnect</b> in SSMS.</td>
+        instead of Windows Authentication. <b>Easiest:</b> in the admin console
+        open the <b>Fixes</b> tab and click <b>Apply fix</b> (one click, no commands). <b>Or</b> run
+        <code>tools/Grant-SqlCreateDatabase.ps1</code> (elevated, as a SQL sysadmin). After granting,
+        <b>reconnect</b> in SSMS.</td>
   </tr>
   <tr>
     <td>A <b>black (console) window</b> opens in front of the delegated app and it looks
@@ -488,9 +489,10 @@
         <code>ALTER SERVER ROLE dbcreator ADD MEMBER [NT AUTHORITY\SYSTEM];</code> (فقط ساخت
         دیتابیس) یا <code>sysadmin</code> (دسترسی کامل). یا داخل SSMS به‌جای Windows Authentication
         با <b>SQL&nbsp;Server Authentication</b> (مثلاً لاگین <code>sa</code>) وصل شوید.
-        <b>میان‌بر:</b> اسکریپت <code>tools/Grant-SqlCreateDatabase.ps1</code> را (به‌صورت elevated و
-        با حسابِ sysadminِ SQL) اجرا کنید — این دسترسی را روی همهٔ نمونه‌های محلی به‌جای شما انجام
-        می‌دهد. بعد از دادن دسترسی، در SSMS <b>دوباره وصل شوید (reconnect)</b>.</td>
+        <b>ساده‌ترین راه:</b> در کنسولِ ادمین تبِ <b>Fixes</b> را
+        باز کنید و دکمهٔ <b>Apply fix</b> را بزنید (یک کلیک، بدون دستور). <b>یا</b>
+        <code>tools/Grant-SqlCreateDatabase.ps1</code> را (elevated، با حسابِ sysadminِ SQL) اجرا کنید.
+        بعد از دادن دسترسی، در SSMS <b>دوباره وصل شوید (reconnect)</b>.</td>
   </tr>
   <tr>
     <td>یک <b>پنجرهٔ مشکی (کنسول)</b> جلوی برنامهٔ تفویض‌شده باز می‌شود و انگار هنگ کرده است</td>
