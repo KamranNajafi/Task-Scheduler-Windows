@@ -227,6 +227,17 @@ after you move or delete the copy you ran. Actions are logged to
   built-in .NET Framework 4.8 (present on Windows 10/11) and needs no extra runtime,
   so it is the recommended build for computer labs.
 
+## Roadmap & development
+
+The development plan, current status, test checklist, design decisions and the rules every
+change must follow (including Windows 7 compatibility) are in
+**[`docs/ROADMAP.md`](docs/ROADMAP.md)** — start there before contributing.
+Current phase: **Phase 1 — Windows 7 completion** (versions `1.x.x`); version 2 starts after it.
+
+برنامهٔ توسعه، وضعیتِ فعلی، چک‌لیستِ تست، تصمیم‌های طراحی و قوانینِ سازگاری با ویندوز ۷ در
+**[`docs/ROADMAP.md`](docs/ROADMAP.md)** آمده است (با خلاصهٔ کاملِ فارسی). فازِ فعلی:
+**تکمیلِ ویندوز ۷** (نسخه‌های `1.x.x`)؛ نسخهٔ ۲ بعد از آن شروع می‌شود.
+
 ## Responsible use
 
 Delegating an application is equivalent to granting `sudo` on it. **Only delegate
