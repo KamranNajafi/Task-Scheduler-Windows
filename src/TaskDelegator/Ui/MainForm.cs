@@ -48,6 +48,8 @@ public sealed class MainForm : Form
     private readonly RadioButton _sqlRoleDbcreator = new() { Text = "Create databases only (dbcreator)", Checked = true, AutoSize = true };
     private readonly RadioButton _sqlRoleSysadmin = new() { Text = "Full admin (sysadmin)", AutoSize = true };
     private readonly TextBox _sqlInstance = new();
+    private readonly TextBox _sqlDbLogin = new();
+    private readonly TextBox _sqlDbPass = new() { UseSystemPasswordChar = true };
     private readonly Button _sqlApply = new() { Text = "Apply fix" };
     private readonly Button _openDataFolder = new() { Text = "Open log && data folder" };
 
@@ -341,83 +343,65 @@ public sealed class MainForm : Form
         return page;
     }
 
+    // Absolute positioning (explicit Location/Size) — reliable, no AutoSize/Dock overlap.
+    private static Label Lbl(string text, int x, int y, int w, Color? color = null) => new()
+    {
+        Text = text,
+        Location = new Point(x, y),
+        Size = new Size(w, 20),
+        TextAlign = ContentAlignment.MiddleLeft,
+        ForeColor = color ?? SystemColors.ControlText
+    };
+
     private TabPage BuildToolsTab()
     {
         var page = new TabPage("Fixes") { Padding = new Padding(10) };
-        var root = new FlowLayoutPanel
+        var root = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+
+        var gSql = new GroupBox { Text = "SQL Server — allow database creation (fix Error 262)", Location = new Point(8, 8), Size = new Size(850, 252) };
+        gSql.Controls.Add(new Label
         {
-            Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.TopDown,
-            WrapContents = false,
-            AutoScroll = true
-        };
+            Location = new Point(14, 22), Size = new Size(824, 58), ForeColor = Color.DimGray,
+            Text = "A delegated SQL tool runs as NT AUTHORITY\\SYSTEM, which by default cannot create databases\n" +
+                   "(Error 262). This grants that account the right on the local SQL Server instance(s). You must run it\n" +
+                   "as a SQL administrator — either sign in to Windows as one, or fill the optional SQL login below\n" +
+                   "(e.g. sa). After it succeeds, DISCONNECT and reconnect in SSMS."
+        });
 
-        // --- SQL Server: fix Error 262 (CREATE DATABASE permission denied) ---
-        var sql = new GroupBox
-        {
-            Text = "SQL Server — allow database creation (fix Error 262)",
-            AutoSize = true,
-            Width = 820,
-            Padding = new Padding(10)
-        };
-        var t = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Top };
-        t.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        gSql.Controls.Add(Lbl("Windows account:", 14, 90, 130));
+        _sqlLogin.Location = new Point(150, 88); _sqlLogin.Size = new Size(300, 23);
+        gSql.Controls.Add(_sqlLogin);
 
-        var info = new Label
-        {
-            Text = "A delegated SQL tool runs as NT AUTHORITY\\SYSTEM, which by default cannot create\n" +
-                   "databases (Error 262). This grants that account the right on the local SQL Server\n" +
-                   "instance(s). Run it once as a SQL administrator (normally the account that installed\n" +
-                   "SQL Server). Afterwards, reconnect in SSMS for it to take effect.",
-            AutoSize = true,
-            ForeColor = Color.DimGray,
-            Margin = new Padding(0, 0, 0, 8)
-        };
-        t.Controls.Add(info, 0, 0);
-        t.SetColumnSpan(info, 2);
+        gSql.Controls.Add(Lbl("Permission:", 14, 120, 130));
+        _sqlRoleDbcreator.Location = new Point(150, 119); _sqlRoleDbcreator.AutoSize = true;
+        _sqlRoleSysadmin.Location = new Point(400, 119); _sqlRoleSysadmin.AutoSize = true;
+        gSql.Controls.Add(_sqlRoleDbcreator);
+        gSql.Controls.Add(_sqlRoleSysadmin);
 
-        _sqlLogin.Dock = DockStyle.Fill;
-        _sqlInstance.Dock = DockStyle.Fill;
-        t.Controls.Add(new Label { Text = "Windows account:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 1);
-        t.Controls.Add(_sqlLogin, 1, 1);
+        gSql.Controls.Add(Lbl("Instance:", 14, 150, 130));
+        _sqlInstance.Location = new Point(150, 148); _sqlInstance.Size = new Size(300, 23);
+        gSql.Controls.Add(_sqlInstance);
+        gSql.Controls.Add(Lbl("(empty = all local instances; or e.g.  .\\SQLEXPRESS)", 460, 150, 380, Color.DimGray));
 
-        var roles = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Margin = new Padding(0), WrapContents = false };
-        roles.Controls.Add(_sqlRoleDbcreator);
-        roles.Controls.Add(_sqlRoleSysadmin);
-        t.Controls.Add(new Label { Text = "Permission:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 2);
-        t.Controls.Add(roles, 1, 2);
+        gSql.Controls.Add(Lbl("SQL login (optional):", 14, 182, 130));
+        _sqlDbLogin.Location = new Point(150, 180); _sqlDbLogin.Size = new Size(140, 23);
+        gSql.Controls.Add(_sqlDbLogin);
+        gSql.Controls.Add(Lbl("SQL password:", 300, 182, 95));
+        _sqlDbPass.Location = new Point(400, 180); _sqlDbPass.Size = new Size(140, 23);
+        gSql.Controls.Add(_sqlDbPass);
+        gSql.Controls.Add(Lbl("(leave empty to use your Windows account)", 150, 206, 380, Color.DimGray));
 
-        t.Controls.Add(new Label { Text = "Instance:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 3);
-        t.Controls.Add(new Label { Text = "(leave empty = all local instances; or type e.g.  .\\SQLEXPRESS )", AutoSize = true, ForeColor = Color.DimGray, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 3, 1) }, 1, 3);
-        t.Controls.Add(_sqlInstance, 1, 4);
-
-        _sqlApply.Width = 160;
-        _sqlApply.Height = 30;
-        _sqlApply.BackColor = Accent;
-        _sqlApply.ForeColor = Color.White;
-        _sqlApply.FlatStyle = FlatStyle.Flat;
+        _sqlApply.Location = new Point(620, 176); _sqlApply.Size = new Size(200, 34);
+        _sqlApply.BackColor = Accent; _sqlApply.ForeColor = Color.White; _sqlApply.FlatStyle = FlatStyle.Flat;
         _sqlApply.Font = new Font("Segoe UI Semibold", 9.5f, FontStyle.Bold);
-        _sqlApply.Margin = new Padding(3, 10, 3, 3);
-        t.Controls.Add(_sqlApply, 1, 5);
+        gSql.Controls.Add(_sqlApply);
 
-        sql.Controls.Add(t);
-        root.Controls.Add(sql);
+        root.Controls.Add(gSql);
 
-        // --- Diagnostics ---
-        var diag = new GroupBox
-        {
-            Text = "Diagnostics",
-            AutoSize = true,
-            Width = 820,
-            Padding = new Padding(10),
-            Margin = new Padding(0, 12, 0, 0)
-        };
-        _openDataFolder.Width = 230;
-        _openDataFolder.Height = 28;
-        _openDataFolder.FlatStyle = FlatStyle.System;
-        diag.Controls.Add(_openDataFolder);
-        root.Controls.Add(diag);
+        var gDiag = new GroupBox { Text = "Diagnostics", Location = new Point(8, 270), Size = new Size(850, 70) };
+        _openDataFolder.Location = new Point(14, 28); _openDataFolder.Size = new Size(250, 28); _openDataFolder.FlatStyle = FlatStyle.System;
+        gDiag.Controls.Add(_openDataFolder);
+        root.Controls.Add(gDiag);
 
         page.Controls.Add(root);
         return page;
@@ -426,92 +410,67 @@ public sealed class MainForm : Form
     private TabPage BuildNetworkTab()
     {
         var page = new TabPage("Network") { Padding = new Padding(10) };
-        var root = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true };
+        var root = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
 
         // 1) Universal silent command + batch.
-        var g1 = new GroupBox { Text = "1. Silent install command  (PsExec / PDQ / USB / login script)", AutoSize = true, Width = 820, Padding = new Padding(10) };
-        var p1 = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Dock = DockStyle.Top };
-        p1.Controls.Add(new Label { Text = "Run as administrator on each PC, with the installer in the same folder (or give a full/UNC path).", AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(0, 0, 0, 4) });
-        _netCmd.Width = 770;
-        _netCmd.Font = new Font("Consolas", 9.5f);
+        var g1 = new GroupBox { Text = "1. Silent install command  (PsExec / PDQ / USB / login script)", Location = new Point(8, 8), Size = new Size(850, 150) };
+        g1.Controls.Add(new Label { Location = new Point(14, 24), Size = new Size(824, 20), ForeColor = Color.DimGray,
+            Text = "Run as administrator on each PC, with the installer in the same folder (or give a full/UNC path)." });
+        _netCmd.Location = new Point(14, 50); _netCmd.Size = new Size(810, 24); _netCmd.Font = new Font("Consolas", 9.5f);
         _netCmd.Text = NetworkDeploy.SilentCommand("TaskDelegatorSetup.exe");
-        p1.Controls.Add(_netCmd);
-        var b1 = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0, 6, 0, 0) };
-        _netCopyCmd.Width = 130; _netSaveBat.Width = 170;
-        b1.Controls.Add(_netCopyCmd);
-        b1.Controls.Add(_netSaveBat);
-        p1.Controls.Add(b1);
-        g1.Controls.Add(p1);
+        g1.Controls.Add(_netCmd);
+        _netCopyCmd.Location = new Point(14, 90); _netCopyCmd.Size = new Size(150, 30);
+        _netSaveBat.Location = new Point(174, 90); _netSaveBat.Size = new Size(180, 30);
+        g1.Controls.Add(_netCopyCmd); g1.Controls.Add(_netSaveBat);
         root.Controls.Add(g1);
 
         // 2) Group Policy.
-        var g2 = new GroupBox { Text = "2. Group Policy (Active Directory) — computer startup script", AutoSize = true, Width = 820, Padding = new Padding(10), Margin = new Padding(0, 12, 0, 0) };
-        var p2 = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Top };
-        p2.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        p2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        var gpoInfo = new Label
-        {
+        var g2 = new GroupBox { Text = "2. Group Policy (Active Directory) — computer startup script", Location = new Point(8, 166), Size = new Size(850, 160) };
+        g2.Controls.Add(new Label { Location = new Point(14, 24), Size = new Size(824, 54), ForeColor = Color.DimGray,
             Text = "Put the installer on a share every PC can read, then add the saved script under\n" +
                    "Computer Configuration ▸ Policies ▸ Windows Settings ▸ Scripts ▸ Startup.\n" +
-                   "It installs/updates only when the version changes.",
-            AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(0, 0, 0, 8)
-        };
-        p2.Controls.Add(gpoInfo, 0, 0); p2.SetColumnSpan(gpoInfo, 2);
-        _gpoUnc.Dock = DockStyle.Fill;
-        p2.Controls.Add(new Label { Text = "Installer UNC path:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 1);
-        p2.Controls.Add(_gpoUnc, 1, 1);
-        _gpoSave.Width = 230; _gpoSave.Margin = new Padding(3, 8, 3, 3);
-        p2.Controls.Add(_gpoSave, 1, 2);
-        g2.Controls.Add(p2);
+                   "It installs/updates only when the version changes." });
+        g2.Controls.Add(Lbl("Installer UNC path:", 14, 90, 130));
+        _gpoUnc.Location = new Point(150, 88); _gpoUnc.Size = new Size(680, 23);
+        g2.Controls.Add(_gpoUnc);
+        _gpoSave.Location = new Point(150, 118); _gpoSave.Size = new Size(240, 30);
+        g2.Controls.Add(_gpoSave);
         root.Controls.Add(g2);
 
         // 3) Workgroup push.
-        var g3 = new GroupBox { Text = "3. Workgroup push (no domain) — advanced", AutoSize = true, Width = 820, Padding = new Padding(10), Margin = new Padding(0, 12, 0, 12) };
-        var p3 = new TableLayoutPanel { ColumnCount = 4, AutoSize = true, Dock = DockStyle.Top };
-        p3.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        p3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-        p3.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        p3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-        var pushInfo = new Label
-        {
-            Text = "Remotely installs to PCs that share the SAME local-admin account. Requires File & Printer\n" +
-                   "Sharing (admin$) reachable and the firewall to allow it. Credentials are used once, not saved.\n" +
-                   "Test on ONE PC first.",
-            AutoSize = true, ForeColor = Color.Firebrick, Margin = new Padding(0, 0, 0, 8)
-        };
-        p3.Controls.Add(pushInfo, 0, 0); p3.SetColumnSpan(pushInfo, 4);
+        var g3 = new GroupBox { Text = "3. Workgroup push (no domain) — advanced", Location = new Point(8, 334), Size = new Size(850, 360) };
+        g3.Controls.Add(new Label { Location = new Point(14, 22), Size = new Size(824, 50), ForeColor = Color.Firebrick,
+            Text = "Remotely installs to PCs that share the SAME local-admin account. Requires File & Printer Sharing\n" +
+                   "(admin$) reachable and the firewall to allow it. Credentials are used once, not saved. Test on ONE PC first." });
 
-        _pushUser.Dock = DockStyle.Fill; _pushPass.Dock = DockStyle.Fill;
-        p3.Controls.Add(new Label { Text = "Admin user:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 1);
-        p3.Controls.Add(_pushUser, 1, 1);
-        p3.Controls.Add(new Label { Text = "Password:", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 2, 1);
-        p3.Controls.Add(_pushPass, 3, 1);
+        g3.Controls.Add(Lbl("Admin user:", 14, 80, 90));
+        _pushUser.Location = new Point(110, 78); _pushUser.Size = new Size(250, 23);
+        g3.Controls.Add(_pushUser);
+        g3.Controls.Add(Lbl("Password:", 380, 80, 80));
+        _pushPass.Location = new Point(470, 78); _pushPass.Size = new Size(250, 23);
+        g3.Controls.Add(_pushPass);
 
-        _pushInstaller.Dock = DockStyle.Fill;
-        p3.Controls.Add(new Label { Text = "Installer (.exe):", AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 3) }, 0, 2);
-        p3.Controls.Add(_pushInstaller, 1, 2); p3.SetColumnSpan(_pushInstaller, 2);
-        _pushBrowse.Width = 90;
-        p3.Controls.Add(_pushBrowse, 3, 2);
+        g3.Controls.Add(Lbl("Installer (.exe):", 14, 112, 95));
+        _pushInstaller.Location = new Point(110, 110); _pushInstaller.Size = new Size(520, 23);
+        g3.Controls.Add(_pushInstaller);
+        _pushBrowse.Location = new Point(640, 109); _pushBrowse.Size = new Size(90, 25);
+        g3.Controls.Add(_pushBrowse);
 
-        p3.Controls.Add(new Label { Text = "Machines:", AutoSize = true, Anchor = AnchorStyles.Left | AnchorStyles.Top, Margin = new Padding(3, 6, 8, 3) }, 0, 3);
-        _pushMachines.Width = 560; _pushMachines.Height = 80; _pushMachines.Font = new Font("Consolas", 9.5f);
-        p3.Controls.Add(_pushMachines, 1, 3); p3.SetColumnSpan(_pushMachines, 3);
-        p3.Controls.Add(new Label { Text = "(one host/IP per line; a range like 192.168.1.10-40 is expanded)", AutoSize = true, ForeColor = Color.DimGray, Margin = new Padding(3, 2, 3, 6) }, 1, 4);
-        p3.SetColumnSpan(p3.GetControlFromPosition(1, 4), 3);
+        g3.Controls.Add(Lbl("Machines:", 14, 144, 90));
+        _pushMachines.Location = new Point(110, 144); _pushMachines.Size = new Size(620, 80); _pushMachines.Font = new Font("Consolas", 9.5f);
+        g3.Controls.Add(_pushMachines);
+        g3.Controls.Add(Lbl("(one host/IP per line; a range like 192.168.1.10-40 is expanded)", 110, 226, 620, Color.DimGray));
 
-        _pushDeploy.Width = 160; _pushDeploy.Height = 30;
+        _pushDeploy.Location = new Point(110, 250); _pushDeploy.Size = new Size(160, 30);
         _pushDeploy.BackColor = Accent; _pushDeploy.ForeColor = Color.White; _pushDeploy.FlatStyle = FlatStyle.Flat;
         _pushDeploy.Font = new Font("Segoe UI Semibold", 9.5f, FontStyle.Bold);
-        _pushDeploy.Margin = new Padding(3, 8, 3, 3);
-        p3.Controls.Add(_pushDeploy, 1, 5);
+        g3.Controls.Add(_pushDeploy);
 
-        p3.Controls.Add(new Label { Text = "Results:", AutoSize = true, Anchor = AnchorStyles.Left | AnchorStyles.Top, Margin = new Padding(3, 6, 8, 3) }, 0, 6);
-        _pushResults.Width = 560; _pushResults.Height = 120; _pushResults.Font = new Font("Consolas", 9f);
-        p3.Controls.Add(_pushResults, 1, 6); p3.SetColumnSpan(_pushResults, 3);
+        g3.Controls.Add(Lbl("Results:", 14, 290, 90));
+        _pushResults.Location = new Point(110, 290); _pushResults.Size = new Size(620, 60); _pushResults.Font = new Font("Consolas", 9f);
+        g3.Controls.Add(_pushResults);
 
-        g3.Controls.Add(p3);
         root.Controls.Add(g3);
-
         page.Controls.Add(root);
         return page;
     }
@@ -719,8 +678,8 @@ public sealed class MainForm : Form
         SetStatus("Applying SQL Server fix…");
         try
         {
-            var r = SqlServerFix.ApplyGrant(login, role, inst);
-            AuditLog.Write($"SQLFIX login='{login}' role={role} instance='{inst ?? "(all)"}' ok={r.AnySuccess} fail={r.AnyFailure}");
+            var r = SqlServerFix.ApplyGrant(login, role, inst, _sqlDbLogin.Text.Trim(), _sqlDbPass.Text);
+            AuditLog.Write($"SQLFIX login='{login}' role={role} instance='{inst ?? "(all)"}' sqlauth={(_sqlDbLogin.Text.Trim().Length > 0)} ok={r.AnySuccess} fail={r.AnyFailure}");
 
             if (r.SqlcmdMissing || r.NoInstances)
             {
