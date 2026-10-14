@@ -8,7 +8,7 @@
 > **To start a new session:** _"Read `docs/ROADMAP.md` (and `docs/HOW-IT-WORKS.md`,
 > `docs/SECURITY.md`), then continue with Phase N."_
 >
-> A full Persian summary is at the end — [خلاصهٔ فارسی](#خلاصهٔ-فارسی--persian-summary).
+> A full Persian summary is at the end — [خلاصهٔ فارسی](#persian-summary).
 
 | | |
 |---|---|
@@ -35,7 +35,7 @@
 11. [Versioning and branching policy](#11-versioning-and-branching-policy)
 12. [Working conventions](#12-working-conventions)
 13. [Open questions](#13-open-questions)
-14. [خلاصهٔ فارسی — Persian summary](#خلاصهٔ-فارسی--persian-summary)
+14. [خلاصهٔ فارسی — Persian summary](#persian-summary)
 
 ---
 
@@ -518,6 +518,8 @@ SmartScreen warnings. Note: SHA-256 signatures need the Win 7 SHA-2 updates (§9
    preferred path in a domain) and 2.4 (domain groups).
 
 ---
+
+<a id="persian-summary"></a>
 
 ## خلاصهٔ فارسی — Persian summary
 
